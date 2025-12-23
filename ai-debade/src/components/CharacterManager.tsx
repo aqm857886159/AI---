@@ -29,8 +29,9 @@ export const CharacterManager = () => {
     const character: AICharacter = {
       id: `custom-${Date.now()}`,
       name: newCharacter.name,
-      avatar: newCharacter.avatar,
+      avatar: newCharacter.avatar as any, // Cast string emoji to ElementType
       personality: newCharacter.personality,
+      systemPrompt: newCharacter.personality, // Use personality as system prompt for custom characters
       style: newCharacter.style.split(',').map(s => s.trim()).filter(Boolean),
       isCustom: true,
     };
@@ -68,7 +69,9 @@ export const CharacterManager = () => {
             {characters.map((char) => (
               <div key={char.id} className="character-item">
                 <div className="character-info">
-                  <span className="char-avatar">{char.avatar}</span>
+                  <span className="char-avatar">
+                    {typeof char.avatar === 'string' ? char.avatar : <char.avatar size={20} />}
+                  </span>
                   <div className="char-details">
                     <div className="char-name">
                       {char.name}

@@ -20,7 +20,9 @@ export const InlineComment = ({ comment, character, position, onClose }: InlineC
       }}
     >
       <div className="inline-comment-header">
-        <span className="inline-character-avatar">{character.avatar}</span>
+        <span className="inline-character-avatar">
+          {typeof character.avatar === 'string' ? character.avatar : <character.avatar size={16} />}
+        </span>
         <span className="inline-character-name">{character.name}</span>
         <button className="inline-close-btn" onClick={onClose}>✕</button>
       </div>

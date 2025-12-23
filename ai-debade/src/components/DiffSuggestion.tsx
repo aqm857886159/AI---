@@ -30,7 +30,9 @@ export const DiffSuggestion = ({
       }}
     >
       <div className="diff-header">
-        <span className="diff-avatar">{character.avatar}</span>
+        <span className="diff-avatar">
+          {typeof character.avatar === 'string' ? character.avatar : <character.avatar size={16} />}
+        </span>
         <span className="diff-character-name">{character.name}</span>
       </div>
 
