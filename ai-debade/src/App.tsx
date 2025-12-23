@@ -5,12 +5,12 @@ import { CommentPanel } from './components/CommentPanel';
 import { Settings as SettingsModal } from './components/Settings';
 import { CharacterManager } from './components/CharacterManager';
 import { DebugInfo } from './debug';
-import { Settings, Sparkles } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import './App.css';
 
 console.log('🎭 [App.tsx] 模块加载');
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 function App() {
   console.log('🎭 [App] 组件渲染开始');

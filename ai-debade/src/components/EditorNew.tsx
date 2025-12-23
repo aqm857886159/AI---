@@ -13,7 +13,7 @@ import './Editor.css';
 const trackChangesPluginKey = new PluginKey('trackChanges');
 
 export const EditorNew = () => {
-  const { content, setContent, fullTextRewrite, setFullTextRewrite, isRewriting, setIsRewriting } = useStore();
+  const { content, setContent, fullTextRewrite, setFullTextRewrite, isRewriting } = useStore();
 
   const [showToolbar, setShowToolbar] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState({ x: 0, y: 0 });
@@ -314,7 +314,6 @@ export const EditorNew = () => {
   const handleAcceptAll = useCallback(() => {
     if (!fullTextRewrite?.paragraphChanges || !editor) return;
 
-    const sortedChanges = [...fullTextRewrite.paragraphChanges].sort((a, b) => a.index - b.index);
     const tr = editor.state.tr;
 
     // We need to be careful with positions shifting if we delete nodes.
@@ -460,9 +459,6 @@ export const EditorNew = () => {
       // 尝试找到包含选区的(多个)段落
       let overlappingParagraphs: { index: number; fullText: string; nodePos: number }[] = [];
       let paragraphIndex = 0;
-
-      const $from = editor.state.doc.resolve(from);
-      const $to = editor.state.doc.resolve(to);
 
       editor.state.doc.descendants((node, pos) => {
         if (node.type.name === 'paragraph') {

@@ -1,10 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
-import { RotateCcw, Settings, Wand2, ArrowRight, Eye, Check } from 'lucide-react';
+import { useEffect } from 'react';
+import { RotateCcw, Wand2, Eye } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { openRouterService } from '../services/openrouter';
-import { computeParagraphDiff } from '../services/paragraphDiff';
 import { computeInlineDiff, hasSignificantChanges } from '../services/inlineDiff';
-import type { Comment, FullTextRewrite, ParagraphChange, AICharacter } from '../types';
+import type { FullTextRewrite, ParagraphChange } from '../types';
 import { getCharacterSystemPrompt } from '../config/characters';
 import ReactMarkdown from 'react-markdown';
 import './CommentPanel.css';
@@ -19,10 +18,8 @@ export const CommentPanel = () => {
     setGeneratingComments,
     addComment,
     clearComments,
-    setShowCharacterManager,
     setFullTextRewrite,
     fullTextRewrite,
-    workflowStage,
     setWorkflowStage,
     setIsRewriting,
   } = useStore();

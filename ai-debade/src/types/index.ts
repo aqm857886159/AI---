@@ -2,11 +2,11 @@
 export type AICharacter = {
   id: string;
   name: string;
-  avatar: React.ElementType; // Use Component type, not Element instance
-  avatarUrl?: string; // Optional custom image URL
-  personality?: string;
+  avatar: React.ElementType;
+  avatarUrl?: string;
   personality: string;
   style: string[];
+  systemPrompt: string;
   isCustom: boolean;
 };
 

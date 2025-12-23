@@ -1,11 +1,10 @@
 import type { AICharacter } from '../types';
 
 import {
-  UserRoundSearch, // For Doctor (Reviewer)
-  UserRoundCheck, // For Polisher (Approver)
-  UserRoundCog, // For Logic (Thinker)
-  UserRoundPlus, // For Creative (Creator)
-  Bot, // Fallback
+  UserRoundSearch,
+  UserRoundCheck,
+  UserRoundCog,
+  UserRoundPlus,
 } from 'lucide-react';
 
 // System Prompts 保持核心指令不变，只调整语气匹配人设（可选，这里暂只改名字和头像）
