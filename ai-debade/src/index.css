@@ -1,0 +1,117 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Serif+SC:wght@400;500;700&display=swap');
+
+:root {
+  /* --- Premium Color Palette (Editorial/Notion-inspired) --- */
+
+  /* Brand/Primary - Deep Indigo */
+  --pk-brand-50: #f0f4ff;
+  --pk-brand-100: #e0e7ff;
+  --pk-brand-500: #6366f1;
+  /* Premium Blurple */
+  --pk-brand-600: #4f46e5;
+  --pk-brand-700: #4338ca;
+  --pk-brand-900: #312e81;
+
+  /* Neutral Scale - Soft, Warm Greys (Paper-like) */
+  --pk-neutral-0: #ffffff;
+  --pk-neutral-50: #fafafa;
+  /* Main Page Background */
+  --pk-neutral-100: #f5f5f5;
+  /* Hover states */
+  --pk-neutral-200: #e5e5e5;
+  /* Borders */
+  --pk-neutral-300: #d4d4d4;
+  --pk-neutral-500: #737373;
+  /* Secondary Text */
+  --pk-neutral-700: #404040;
+  /* Primary Text */
+  --pk-neutral-900: #171717;
+  /* Titles */
+
+  /* Semantic Colors - Sophisticated Tones */
+  --pk-success-bg: #ecfdf5;
+  --pk-success-text: #047857;
+  --pk-success-border: #d1fae5;
+
+  --pk-warning-bg: #fffbeb;
+  --pk-warning-text: #b45309;
+  --pk-warning-border: #fef3c7;
+
+  --pk-error-bg: #fef2f2;
+  --pk-error-text: #b91c1c;
+  --pk-error-border: #fee2e2;
+
+  /* --- Typography --- */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Noto Serif SC', 'Songti SC', serif;
+
+  /* --- Shadows & Depth --- */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-float: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  /* --- Radius --- */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* --- Transitions --- */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Apple-like spring */
+}
+
+/* Base Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--pk-neutral-50);
+  color: var(--pk-neutral-900);
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow: hidden;
+  /* App handles scroll */
+}
+
+/* Scrollbar Polish */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Shared Utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

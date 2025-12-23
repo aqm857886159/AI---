@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(if exist Editor.tsx.backup del Editor.tsx.backup)",
+      "Bash(move Editor.tsx Editor.tsx.old)",
+      "Bash(move EditorWithRevision.tsx Editor.tsx)",
+      "Bash(wc:*)",
+      "Bash(npm run build:*)",
+      "Bash(del srcextensionsdeletion.ts srcextensionsinsertion.ts srcextensionstrackChanges.ts srcextensionshighlight.ts)"
+    ]
+  }
+}

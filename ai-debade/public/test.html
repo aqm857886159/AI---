@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试页面</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #000;
+            color: #0f0;
+        }
+        h1 { color: #0ff; }
+        .ok { color: #0f0; }
+        .error { color: #f00; }
+    </style>
+</head>
+<body>
+    <h1>🔍 服务器状态测试</h1>
+    <p class="ok">✅ 如果你能看到这个页面，说明 Vite 服务器正常运行</p>
+    <p>请访问主应用：<a href="/" style="color: #ff0;">http://localhost:5175/</a></p>
+
+    <script>
+        console.log('✅ test.html 加载成功');
+        document.body.innerHTML += '<p class="ok">✅ JavaScript 执行正常</p>';
+    </script>
+</body>
+</html>
