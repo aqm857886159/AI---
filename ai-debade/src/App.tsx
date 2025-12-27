@@ -4,8 +4,7 @@ import { EditorNew as Editor } from './components/EditorNew';
 import { CommentPanel } from './components/CommentPanel';
 import { Settings as SettingsModal } from './components/Settings';
 import { CharacterManager } from './components/CharacterManager';
-import { DebugInfo } from './debug';
-import { Settings } from 'lucide-react';
+import { ClaraEpilogue } from './components/ClaraEpilogue';
 import './App.css';
 
 console.log('🎭 [App.tsx] 模块加载');
@@ -17,7 +16,7 @@ function App() {
 
   try {
     const { setShowSettings } = useStore();
-    const [sidebarWidth, setSidebarWidth] = useState(380);
+    const [sidebarWidth, setSidebarWidth] = useState(340);
     const [isResizing, setIsResizing] = useState(false);
 
     const startResizing = useCallback((e: React.MouseEvent) => {
@@ -55,43 +54,41 @@ function App() {
         className="app"
         style={{ '--sidebar-width': `${sidebarWidth}px` } as React.CSSProperties}
       >
-        <DebugInfo />
-
-        {/* Glass Header */}
         <header className="app-header">
-          <div className="header-blur-bg" />
           <div className="header-content">
-            <div className="logo">
+            <div className="logo" title="AI-DEBADE 2.0">
+              <div className="logo-icon" />
               <h1 className="logo-text">AI 嘚吧嘚</h1>
             </div>
-            <button
-              className="settings-btn"
-              onClick={() => setShowSettings(true)}
-              title="设置"
-            >
-              <Settings size={20} />
-            </button>
+
+            <div className="header-actions">
+              <button
+                className="action-btn"
+                onClick={() => setShowSettings(true)}
+              >
+                设置
+              </button>
+            </div>
           </div>
         </header>
 
         <div className="main-viewport">
-          {/* Main Editing Area (Scrollable) */}
           <div className="editor-canvas">
-            <div className="editor-container-width">
+            <div className="editor-container-width fade-in">
               <div className="title-wrapper">
                 <TitleGenerator />
               </div>
               <Editor />
+              <div id="revision-dock" style={{ zIndex: 100, position: 'relative' }}></div>
+              <ClaraEpilogue />
             </div>
           </div>
 
-          {/* Resizer Handle */}
           <div
             className={`resizer ${isResizing ? 'resizing' : ''}`}
             onMouseDown={startResizing}
           />
 
-          {/* Docked Sidebar (Fixed) */}
           <aside className="ai-sidebar" style={{ width: sidebarWidth }}>
             <CommentPanel />
           </aside>

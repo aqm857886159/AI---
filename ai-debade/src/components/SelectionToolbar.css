@@ -1,37 +1,56 @@
-/* Premium Black/White Selection Toolbar */
+/* Smart Material Toolbar (Expert Panel V2.0) */
 .selection-toolbar {
   z-index: 100;
-  animation: popIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-  background: #ffffff;
-  border: 1px solid #e3e3e3;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
-  padding: 0.375rem;
+  animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Glassmorphism Surface */
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  /* Deep Elevated Shadow */
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  padding: 6px;
   display: flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 6px;
+  transition: all 0.2s ease;
 }
 
 @keyframes popIn {
   from {
     opacity: 0;
-    transform: scale(0.94) translateY(4px);
+    transform: scale(0.96) translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
 }
 
+/* Progressive Disclosure: The "Ghost" Effect */
 .toolbar-group {
   display: flex;
   align-items: center;
-  gap: 0.125rem;
+  gap: 2px;
+  /* Default: Low visibility (Ghost Mode) */
+  opacity: 0.3;
+  filter: grayscale(100%);
+  transition: all 0.3s ease;
+}
+
+/* Reveal mechanism: Hovering the TOOLBAR reveals the tools */
+.selection-toolbar:hover .toolbar-group {
+  opacity: 1;
+  filter: grayscale(0%);
 }
 
 .format-btn {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -39,53 +58,78 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  color: #525252;
-  font-size: 13px;
-  transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
 }
 
 .format-btn:hover {
-  background: #f5f5f5;
-  color: #000000;
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text-primary);
 }
 
 .format-btn[data-active="true"] {
-  background: #e8e8e8;
-  color: #000000;
-}
-
-.format-btn:active {
-  transform: scale(0.96);
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--color-obsidian);
 }
 
 .toolbar-divider {
   width: 1px;
-  height: 20px;
-  background: #e3e3e3;
-  margin: 0 0.25rem;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.1);
+  margin: 0 4px;
+  /* Divider also fades */
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
 }
 
+.selection-toolbar:hover .toolbar-divider {
+  opacity: 1;
+}
+
+/* The Soul: AI Button (Always Visible & Alive) */
 .ai-btn {
-  padding: 0.5rem 0.875rem;
-  background: #000000;
+  padding: 6px 14px;
+  /* Magical Blue-Purple Gradient */
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
   color: #ffffff;
   border: none;
-  border-radius: 7px;
-  font-weight: 500;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
+  font-family: var(--font-sans);
   cursor: pointer;
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 0.8125rem;
-  white-space: nowrap;
-  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  /* Breathing Pulse Effect */
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  animation: pulse-glow 3s infinite;
+
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ai-btn:hover {
-  background: #171717;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+  filter: brightness(1.1);
 }
 
 .ai-btn:active {
-  transform: translateY(0);
-  background: #262626;
+  transform: scale(0.98);
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgba(124, 58, 237, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0);
+  }
 }

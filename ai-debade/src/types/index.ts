@@ -2,12 +2,13 @@
 export type AICharacter = {
   id: string;
   name: string;
-  avatar: React.ElementType;
+  avatar: string | React.ElementType;
   avatarUrl?: string;
   personality: string;
   style: string[];
   systemPrompt: string;
   isCustom: boolean;
+  hiddenFromPanel?: boolean; // New: Hide from CommentPanel list
 };
 
 // Diff部分
@@ -35,7 +36,7 @@ export type InlineDiffPart = {
 export type ParagraphChange = {
   id: string;
   index: number;
-  type: 'modified' | 'added' | 'deleted';
+  type: 'modified' | 'added' | 'deleted' | 'praise';
   originalText: string;
   improvedText?: string;
   inlineDiff?: InlineDiffPart[]; // 段落内的字符级diff
@@ -94,3 +95,48 @@ export type TitleSuggestion = {
   title: string;
   reason: string;
 };
+
+// 夸夸高亮
+export type PraiseHighlight = {
+  id: string; // New: Unique ID for read-status
+  type: 'rhetoric' | 'insight' | 'emotion' | 'logic';
+  quote: string;
+  reason: string;
+  wow?: string; // New: Playful hook (AI generated)
+};
+
+export type PraiseResponse = {
+  highlights: PraiseHighlight[];
+};
+
+// V17: Incremental Praise Types
+export interface PraiseRecord {
+  id: string;
+  timestamp: number;
+  type: 'golden_sentence' | 'fluency' | 'logic' | 'emotion' | 'progress';
+  quote?: string;  // Only for golden_sentence
+  wow: string;
+  reason: string;
+  wordCountWhen: number;  // Word count when praise was triggered
+}
+
+export interface WritingStats {
+  totalWords: number;
+  praiseCount: number;
+  breakdown: {
+    golden: number;
+    fluency: number;
+    logic: number;
+    emotion: number;
+    progress: number;
+  };
+}
+
+export interface IncrementalPraiseResponse {
+  praises: Array<{
+    type: PraiseRecord['type'];
+    quote?: string;
+    wow: string;
+    reason: string;
+  }>;
+}

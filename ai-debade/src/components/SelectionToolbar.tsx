@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useFloating, offset, flip, shift } from '@floating-ui/react';
 import type { Editor } from '@tiptap/react';
+import { Bold, Italic, Strikethrough, Code, Sparkles } from 'lucide-react';
 import './SelectionToolbar.css';
 
 interface SelectionToolbarProps {
@@ -64,7 +65,7 @@ export const SelectionToolbar = ({ position, editor, onGetSuggestion }: Selectio
           title="加粗"
           data-active={editor.isActive('bold')}
         >
-          <strong>B</strong>
+          <Bold size={14} strokeWidth={2.5} />
         </button>
         <button
           className="format-btn"
@@ -72,7 +73,7 @@ export const SelectionToolbar = ({ position, editor, onGetSuggestion }: Selectio
           title="斜体"
           data-active={editor.isActive('italic')}
         >
-          <em>I</em>
+          <Italic size={14} strokeWidth={2.5} />
         </button>
         <button
           className="format-btn"
@@ -80,7 +81,7 @@ export const SelectionToolbar = ({ position, editor, onGetSuggestion }: Selectio
           title="删除线"
           data-active={editor.isActive('strike')}
         >
-          <s>S</s>
+          <Strikethrough size={14} strokeWidth={2.5} />
         </button>
         <button
           className="format-btn"
@@ -88,14 +89,15 @@ export const SelectionToolbar = ({ position, editor, onGetSuggestion }: Selectio
           title="代码"
           data-active={editor.isActive('code')}
         >
-          {'</>'}
+          <Code size={14} strokeWidth={2.5} />
         </button>
       </div>
 
       <div className="toolbar-divider"></div>
 
       <button className="ai-btn" onClick={onGetSuggestion}>
-        ✨ AI嘚吧嘚
+        <Sparkles size={14} fill="currentColor" />
+        <span>AI嘚吧嘚</span>
       </button>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { RotateCcw, Wand2, Eye } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { openRouterService } from '../services/openrouter';
 import { computeInlineDiff, hasSignificantChanges } from '../services/inlineDiff';
@@ -23,6 +23,17 @@ export const CommentPanel = () => {
     setWorkflowStage,
     setIsRewriting,
   } = useStore();
+
+  // V18 Migration: Clear legacy character data from localStorage one time
+  useEffect(() => {
+    const hasMigrated = localStorage.getItem('v18_avatar_migration');
+    if (!hasMigrated) {
+      console.log('🔄 [V18] Clearing legacy characters to enforce new avatars...');
+      localStorage.removeItem('ai_characters');
+      localStorage.setItem('v18_avatar_migration', 'true');
+      window.location.reload(); // Force reload to pick up new config
+    }
+  }, []);
 
   // 检查是否有未处理的修订
   const hasPendingChanges = () => {
@@ -92,9 +103,13 @@ export const CommentPanel = () => {
       setFullTextRewrite(rewrite);
       console.log('💾 [FullText Revision] 改写完成, 修改数:', paragraphChanges.length);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ [FullText Revision] 改写失败:', error);
-      alert('生成修订失败，请重试');
+      if (error.message === 'KEY_LIMIT_EXCEEDED') {
+        alert('⚠️ OpenRouter API Key 额度已用完或无效。\n\n请前往设置页面检查您的 API Key 状态，或充值 OpenRouter 账户。');
+      } else {
+        alert(`生成修订失败: ${error.message || '请重试'}`);
+      }
     } finally {
       setIsRewriting(false);
     }
@@ -128,21 +143,23 @@ export const CommentPanel = () => {
       const commentsPromise = (async () => {
         // 使用 Promise.all 并发执行，但为了避免速率限制，可以分组执行或者简单并发
         // 这里为了速度直接并发，OpenRouter通常能抗住
-        const promises = characters.map(async (character, index) => {
-          // 加一点点随机延迟，避免所有请求毫秒级同时到达
-          await new Promise(r => setTimeout(r, index * 200));
+        const promises = characters
+          .filter(c => !c.hiddenFromPanel)
+          .map(async (character, index) => {
+            // 加一点点随机延迟，避免所有请求毫秒级同时到达
+            await new Promise(r => setTimeout(r, index * 200));
 
-          const systemPrompt = getCharacterSystemPrompt(character, 'full');
-          const commentContent = await openRouterService.getFullComment(plainText, systemPrompt);
+            const systemPrompt = getCharacterSystemPrompt(character, 'full');
+            const commentContent = await openRouterService.getFullComment(plainText, systemPrompt);
 
-          addComment({
-            id: `${character.id}-${Date.now()}`,
-            characterId: character.id,
-            type: 'full',
-            content: commentContent,
-            timestamp: Date.now(),
+            addComment({
+              id: `${character.id}-${Date.now()}`,
+              characterId: character.id,
+              type: 'full',
+              content: commentContent,
+              timestamp: Date.now(),
+            });
           });
-        });
         await Promise.all(promises);
       })();
 
@@ -155,9 +172,13 @@ export const CommentPanel = () => {
 
       await Promise.all([commentsPromise, rewritePromise]);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('生成过程中出现了一些问题，请重试');
+      if (error.message === 'KEY_LIMIT_EXCEEDED') {
+        alert('⚠️ OpenRouter API Key 额度已用完或无效。\n\n请前往设置页面检查您的 API Key 状态，或充值 OpenRouter 账户。');
+      } else {
+        alert(`生成过程中出现了一些问题: ${error.message || '请重试'}`);
+      }
     } finally {
       setGeneratingComments(false);
     }
@@ -221,22 +242,24 @@ export const CommentPanel = () => {
         }
 
         const commentsPromise = (async () => {
-          const promises = characters.map(async (character, index) => {
-            await new Promise(r => setTimeout(r, index * 200 + 100));
-            const systemPrompt = getCharacterSystemPrompt(character, 'selection');
-            const { comment } = await openRouterService.getSelectionSuggestion(
-              selectedText,
-              systemPrompt,
-              fullContent
-            );
-            addComment({
-              id: `${character.id}-sel-${Date.now()}`,
-              characterId: character.id,
-              type: 'selection',
-              content: comment,
-              timestamp: Date.now(),
+          const promises = characters
+            .filter(c => !c.hiddenFromPanel)
+            .map(async (character, index) => {
+              await new Promise(r => setTimeout(r, index * 200 + 100));
+              const systemPrompt = getCharacterSystemPrompt(character, 'selection');
+              const { comment } = await openRouterService.getSelectionSuggestion(
+                selectedText,
+                systemPrompt,
+                fullContent
+              );
+              addComment({
+                id: `${character.id}-sel-${Date.now()}`,
+                characterId: character.id,
+                type: 'selection',
+                content: comment,
+                timestamp: Date.now(),
+              });
             });
-          });
           await Promise.all(promises);
         })();
 
@@ -319,92 +342,80 @@ export const CommentPanel = () => {
   return (
     <div className="comment-panel">
       <div className="panel-header">
-        <div className="panel-title-wrapper">
-          <h2 className="panel-title">AI嘚嘚</h2>
-          {/* 全文修订按钮 - 永久可见 */}
-          <button
-            className="fulltext-revision-btn"
-            onClick={startFullReview}
-            disabled={isGeneratingComments || !content || content.trim().length < 50}
-            title="全文修订"
-          >
-            <Wand2 size={14} />
-            全文修订
-          </button>
+        <div className="panel-title">
+          <div className="title-icon" />
+          <span>专家议事厅</span>
         </div>
         <div className="panel-actions">
-          {/* 状态重置按钮 */}
-          <button className="icon-btn" onClick={() => {
-            setWorkflowStage('idle');
-            setFullTextRewrite(null);
-            clearComments();
-          }} title="重置">
-            <RotateCcw size={18} />
+          <button className="fulltext-revision-btn" onClick={startFullReview} title="开启 AI 分析">
+            AI嘚吧嘚
+          </button>
+
+          <button
+            className="action-icon-btn"
+            onClick={() => {
+              setWorkflowStage('idle');
+              setFullTextRewrite(null);
+              clearComments();
+            }}
+            title="清空"
+          >
+            <RotateCcw size={16} />
           </button>
         </div>
       </div>
 
       <div className="comments-container">
-        {/* 引导区域 */}
+        {/* Empty State: The Void */}
         {comments.length === 0 && !isGeneratingComments && (
-          <div className="workflow-start">
-            <div className="empty-state">
-              <div className="empty-icon-wrapper">
-                <Wand2 size={48} className="empty-icon" />
-              </div>
-              <p>点击下方按钮，召唤AI专家团</p>
-              <button className="primary-btn pulse" onClick={startFullReview}>
-                <Wand2 size={16} /> 开始全面优化
-              </button>
-            </div>
+          <div className="empty-monolith">
+            <p className="empty-text">开始写作后，点击上方按钮让 AI 专家团帮你分析</p>
           </div>
         )}
 
-        {/* 评论列表 */}
+        {/* Comment Blocks */}
         {comments.map((comment) => {
           const character = getCharacter(comment.characterId);
           if (!character) return null;
 
           return (
-            <div key={comment.id} className="comment-card" onClick={() => handleOnDemandRewrite(comment.content)} title="点击生成基于此建议的修订">
+            <div
+              key={comment.id}
+              className={`comment-card fade-in expert-${character.id}`}
+              onClick={() => handleOnDemandRewrite(comment.content)}
+            >
               <div className="comment-header">
-                {/* Avatar is now a ReactNode, render directly */}
-                {/* Avatar Rendering */}
-                <div className="character-avatar-container">
-                  {character.avatarUrl ? (
-                    <img src={character.avatarUrl} alt={character.name} className="character-avatar-img" />
-                  ) : (
-                    <character.avatar size={20} />
-                  )}
+                <div className="char-avatar-box">
+                  {typeof character.avatar === 'string' ? character.avatar[0] : <character.avatar size={14} />}
                 </div>
-                <div className="character-info">
-                  <span className="character-name">{character.name}</span>
-                  <span className="character-role">{character.style[0]}</span>
-                </div>
-                {/* 快捷操作区 */}
-                <div className="card-mini-actions">
-                  <button className="mini-btn" onClick={(e) => {
-                    e.stopPropagation();
-                    handleOnDemandRewrite(comment.content);
-                  }} title="只看他的修改方案">
-                    <Eye size={16} />
-                  </button>
+                <div className="char-meta">
+                  <span className="char-name">{character.name}</span>
                 </div>
               </div>
 
-              <div className="comment-content markdown-body">
+              <div className="comment-body markdown-content">
                 <ReactMarkdown>{comment.content}</ReactMarkdown>
               </div>
 
-              {/* Selection suggestion button removed */}
+              <div className="card-modular-actions">
+                <button
+                  className="modular-btn primary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOnDemandRewrite(comment.content);
+                  }}
+                >
+                  采纳
+                </button>
+              </div>
             </div>
           );
         })}
 
         {isGeneratingComments && (
           <div className="loading-state">
-            <div className="loading-spinner-clean"></div>
-            <p>专家团正在评审中...</p>
+            <div className="shimmer-monolith" />
+            <p className="empty-text" style={{ marginTop: '16px' }}>正在构建专家洞察...</p>
           </div>
         )}
       </div>

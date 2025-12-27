@@ -1,464 +1,1257 @@
 .editor-wrapper {
-  /* height: 100%;  <-- Removed to let it flow naturally */
-  /* overflow-y: auto; <-- Removed to prevent double scrollbars */
-  padding: 40px 20px;
-  background: var(--pk-neutral-50);
-  padding: 40px 20px;
-  background: var(--pk-neutral-50);
-  /* display: flex; <-- Removed to fix alignment issues */
-  /* justify-content: center; */
+  padding: 0;
+  background: transparent;
 }
 
-/* The Paper */
+/* The Board */
 .ProseMirror {
   width: 100%;
-  max-width: 800px;
-  /* Standard A4ish width */
-  min-height: 900px;
-  background: white;
-  padding: 0;
-  /* Let App.css handle padding */
-  margin: 0 auto;
-  /* Center itself */
-  border-radius: 0;
-  box-shadow: none;
+  min-height: 200px;
+  /* Reduced fixed min-height, let parent handle viewport height */
+  height: auto;
+  background: transparent;
+  padding: var(--space-4);
+  margin: 0;
   outline: none;
-  font-family: var(--font-editor);
-  color: var(--pk-neutral-900);
-  font-size: 19px;
-  /* Slightly larger for premium feel */
-  line-height: 1.8;
+  font-family: var(--font-serif);
+  color: var(--text-primary);
+  /* UX Phase 2: Typography Optimization */
+  font-size: 1rem;
+  /* Reduced from 1.125rem (18px) to 16px */
+  line-height: 1.6;
+  /* Reduced from 1.85 to 1.6 for better density */
+  word-break: break-word;
+  /* Architectural standard for wrap */
+  overflow-wrap: anywhere;
+}
+
+/* ========== 新的修订段落块样式 ========== */
+
+/* Revision Paragraph Block - 包裹整个修订段落 */
+.revision-paragraph-block {
+  position: relative;
+  border: 2px solid var(--border-concrete);
+  border-left: 4px solid var(--color-obsidian);
+  background: var(--color-concrete-50);
+  padding: 12px 16px;
+  padding-top: 44px;
+  /* 为顶部按钮留出空间 */
+  margin: 16px 0;
+  margin-bottom: 48px;
+  /* 为底部原因留出空间 - 使用margin而非padding */
+  border-radius: var(--radius-sm);
+  transition: all 200ms ease;
+}
+
+.revision-paragraph-block:hover {
+  background: var(--color-concrete-100);
+  border-color: var(--color-obsidian);
+}
+
+/* 右上角的操作按钮 */
+.revision-action-buttons {
+  display: inline-flex;
+  gap: 6px;
+  float: right;
+  margin-top: -32px;
+  margin-right: -4px;
+  z-index: 10;
+}
+
+.revision-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-concrete);
+  background: var(--color-concrete-0);
+  color: var(--text-secondary);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 200ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.revision-btn.accept {
+  color: #059669;
+}
+
+.revision-btn.accept:hover {
+  background: #059669;
+  color: white;
+  border-color: #059669;
+  transform: scale(1.05);
+}
+
+.revision-btn.reject {
+  color: #dc2626;
+}
+
+.revision-btn.reject:hover {
+  background: #dc2626;
+  color: white;
+  border-color: #dc2626;
+  transform: scale(1.05);
+}
+
+/* 底部的修订原因 */
+.revision-reason-footer {
+  display: block;
+  background: var(--color-concrete-100);
+  border: 1px solid var(--border-concrete);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.revision-reason-footer .reason-icon {
+  font-size: 12px;
+}
+
+/* 旧的样式保留兼容性 */
+.has-inline-revisions {
+  position: relative;
 }
 
 /* Title Placeholder */
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
-  color: var(--pk-neutral-300);
+  color: var(--text-muted);
   pointer-events: none;
   height: 0;
-  font-style: italic;
+  font-style: normal;
 }
 
-/* Selection */
+/* Custom Selection */
 .ProseMirror ::selection {
-  background-color: var(--pk-brand-100);
-  color: var(--pk-brand-900);
+  background-color: var(--color-concrete-900);
+  color: var(--color-concrete-0);
 }
 
 /* Typography */
 .ProseMirror p {
-  margin: 1.5em 0;
-  line-height: 1.8;
+  margin: 1.25em 0;
 }
 
 .ProseMirror h1 {
-  font-family: var(--font-sans);
-  /* Headings in Sans usually look modern */
-  font-size: 2.25em;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin-bottom: 0.5em;
-  color: var(--pk-neutral-900);
+  font-family: var(--font-mono);
+  font-size: 1.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2rem;
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--color-obsidian);
+  padding-bottom: var(--space-2);
 }
 
-.ProseMirror h2 {
-  font-family: var(--font-sans);
-  font-size: 1.5em;
-  border-bottom: 2px solid var(--pk-brand-100);
-  padding-bottom: 0.3em;
-  margin-top: 2em;
-}
-
-.ProseMirror blockquote {
-  border-left: 4px solid var(--pk-brand-500);
-  background: var(--pk-brand-50);
-  padding: 1em 1.5em;
-  margin: 2em 0;
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  font-style: italic;
-  color: var(--pk-neutral-700);
-}
-
-/* Animations */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.ProseMirror>* {
-  animation: fadeInUp 0.4s ease-out backwards;
-}
-
-/* 修订模式 - diff标记样式 */
-.diff-mark {
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s ease;
-}
-
-/* 删除标记 - 黑色删除线 + 淡色文字 */
-.diff-mark-delete {
-  text-decoration: line-through;
-  text-decoration-color: #000;
-  text-decoration-thickness: 1.5px;
-  color: #999;
-}
-
-/* 插入标记 - 淡黄色背景 */
-.diff-mark-insert {
-  background-color: #fff3cd;
-  padding: 2px 0;
-}
-
-/* 替换标记 = 删除 + 插入 */
-.diff-mark-replace .original {
-  text-decoration: line-through;
-  text-decoration-color: #000;
-  text-decoration-thickness: 1.5px;
-  color: #999;
-}
-
-.diff-mark-replace .new {
-  background-color: #fff3cd;
-  padding: 2px 0;
-}
-
-/* 悬停效果 */
-.diff-mark:hover {
-  opacity: 0.8;
-}
-
-/* 段落级别修订模式样式 - 内联Diff版本 */
-
-/* 隐藏原始段落内容（被widget替换） */
-.paragraph-hidden {
-  display: none !important;
-  visibility: hidden !important;
-  height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  opacity: 0 !important;
-}
-
-/* 修改段落的包装器 - Widget版本 */
+/* Modified Paragraph: A Structural Block */
 .paragraph-modified-wrapper {
   display: block;
-  /* 确保作为块级元素显示 */
   position: relative;
-  border-left: 3px solid #ffc107;
-  padding: 12px 12px 12px 16px;
-  margin: 8px 0 8px 0;
-  /* 修正margin */
-  background: rgba(255, 243, 205, 0.15);
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  width: 100%;
-  /* 占满宽度 */
+  border-left: 2px solid var(--color-obsidian);
+  padding: var(--space-3) var(--space-4);
+  margin: var(--space-3) 0;
+  background: var(--color-concrete-50);
+  transition: all 300ms var(--ease-spring);
+  border-radius: var(--radius-sm);
+  max-width: 100%;
   box-sizing: border-box;
-  padding-right: 80px;
-  /* 防止按钮遮挡文字 */
+  overflow: hidden;
+  /* Prevent internal stretching */
+}
+
+/* Hidden Paragraph: Completely collapse to avoid 'duplication' appearance */
+.paragraph-hidden {
+  display: none !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .paragraph-modified-wrapper:hover {
-  background: rgba(255, 243, 205, 0.25);
-  border-left-color: #ffb300;
+  background: var(--color-concrete-100);
 }
 
-/* 内联diff内容 */
+/* Inline Diff Typography */
 .inline-diff-content {
-  font-size: 16px;
-  line-height: 1.8;
-  color: #000;
+  font-size: 1.125rem;
+  /* Match editor font size */
+  line-height: 1.85;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
-/* 删除的文字 */
+/* The "Removed" Text: Gentle Gray */
 .inline-diff-delete {
   text-decoration: line-through;
-  text-decoration-color: #000;
-  text-decoration-thickness: 1.5px;
-  color: #999;
+  text-decoration-color: var(--color-concrete-400);
+  color: var(--color-concrete-400);
+  opacity: 0.7;
 }
 
-/* 插入的文字 */
+/* The "Inserted" Text: Soft Emerald */
 .inline-diff-insert {
-  background-color: #fff3cd;
-  padding: 2px 0;
+  color: var(--color-concrete-800);
+  font-weight: 500;
+  background: rgba(0, 200, 83, 0.08);
+  padding: 0 2px;
 }
 
-/* 操作按钮容器 */
+/* Action Buttons: Modular & Tactile */
 .paragraph-actions {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: var(--space-2);
+  right: var(--space-2);
   display: flex;
-  gap: 4px;
-  z-index: 10;
+  gap: var(--space-1);
 }
 
-/* 操作按钮样式 */
 .paragraph-action-btn {
-  width: 28px;
-  height: 28px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-  transition: all 0.2s ease;
+  width: 24px;
+  height: 24px;
+  background: var(--color-concrete-300);
+  color: var(--color-concrete-800);
+  font-family: var(--font-mono);
+  font-size: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: all 200ms ease;
+}
+
+.paragraph-action-btn:hover {
+  background: var(--color-obsidian);
+  color: var(--color-concrete-0);
 }
 
 .paragraph-action-btn.accept {
-  background: #000000;
-  color: #ffffff;
+  background: var(--color-obsidian);
+  color: var(--color-concrete-0);
 }
 
-.paragraph-action-btn.accept:hover {
-  background: #1a1a1a;
-  transform: scale(1.05);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+/* Inline Diff Insert Widget (Ephemeral) */
+.inline-diff-insert-widget {
+  color: #059669;
+  /* Emerald Green */
+  font-weight: 500;
+  background: rgba(5, 150, 105, 0.1);
+  padding: 0 4px;
+  border-radius: 2px;
+  margin: 0 2px;
+  text-decoration: none !important;
+  font-style: normal;
 }
 
-.paragraph-action-btn.reject {
-  background: #f5f5f5;
-  color: #525252;
-  border: 1px solid #e3e3e3;
-}
-
-.paragraph-action-btn.reject:hover {
-  background: #e8e8e8;
-  border-color: #d4d4d4;
-  transform: scale(1.05);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* 删除段落样式 */
-.paragraph-deleted {
-  position: relative;
-  border-left: 3px solid #999;
-  padding-left: 16px;
-  margin-left: -15px;
-  background: rgba(245, 245, 245, 0.3);
-  color: #999;
-  text-decoration: line-through;
-  text-decoration-color: #000;
-  text-decoration-thickness: 1.5px;
-  transition: all 0.2s ease;
-}
-
-.paragraph-deleted:hover {
-  background: rgba(245, 245, 245, 0.5);
-  border-left-color: #666;
-}
-
-/* 新增段落样式 */
-.paragraph-added {
-  position: relative;
-  border-left: 3px solid #4caf50;
-  padding-left: 16px;
-  margin-left: -15px;
-  background: rgba(76, 175, 80, 0.1);
-  transition: all 0.2s ease;
-}
-
-.paragraph-added:hover {
-  background: rgba(76, 175, 80, 0.2);
-  border-left-color: #45a049;
-}
-
-/* Tooltip for AI Reason */
-.diff-reason-tooltip {
-  display: block;
-  margin-top: 8px;
-  padding: 6px 10px;
-  background-color: #f0fdf4;
-  /* Light green/brand tint */
-  border: 1px solid #bbf7d0;
-  border-radius: 6px;
-  color: #166534;
-  font-size: 13px;
-  line-height: 1.4;
-  font-family: var(--font-ui);
-  position: relative;
-  /* Add icon via pseudo-element if needed */
-}
-
-.diff-reason-tooltip::before {
-  content: '';
-  display: block;
-  width: 0;
-  height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-bottom: 6px solid #bbf7d0;
+/* Floating Action Panel (Side of Paragraph) */
+.paragraph-actions-floating {
   position: absolute;
-  top: -6px;
-  left: 10px;
-}
-
-/* =================================================================
-   新增加的 UI 样式 (Revision Bar & Loading)
-   ================================================================= */
-
-/* 编辑器 Loading 遮罩 - 已废弃/不常用，保留类名但移除嵌套 */
-.loading-overlay {
-  position: absolute;
+  right: -180px;
+  /* 增加宽度以容纳修订原因 */
   top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.7);
-  pointer-events: none;
-  opacity: 0;
-  z-index: -1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 50;
+  opacity: 1;
+  /* Ensure visible */
+  min-width: 160px;
 }
 
-/* Non-Blocking Status Indicator - Top Level */
-.ai-processing-status {
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #e3e3e3;
-  padding: 6px 12px;
-  border-radius: 20px;
+/* 修订原因标签 */
+.revision-reason-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--color-concrete-100);
+  border: 1px solid var(--border-concrete);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+  line-height: 1.4;
+}
+
+/* 按钮容器 */
+.revision-btn-container {
+  display: flex;
+  gap: 4px;
+  flex-direction: row;
+}
+
+.float-action-btn {
+  width: 28px;
+  height: 28px;
+  background: var(--color-concrete-100);
+  border: 1px solid var(--border-concrete);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #666;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  z-index: 50;
-  pointer-events: none;
-  animation: slideDown 0.3s ease-out;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 200ms ease;
+  color: var(--text-secondary);
+}
+
+.float-action-btn:hover {
+  background: var(--color-obsidian);
+  color: var(--color-concrete-0);
+  border-color: var(--color-obsidian);
+}
+
+.float-action-btn.accept {
+  color: #059669;
+}
+
+.float-action-btn.accept:hover {
+  background: #059669;
+  color: white;
+}
+
+/* AI Processing Status: Editor-Relative Beacon */
+.ai-processing-status {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  background: var(--color-concrete-700);
+  color: var(--color-concrete-100);
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  z-index: 10;
+  border-radius: var(--radius-sm);
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
-  background-color: #2196F3;
-  border-radius: 50%;
-  animation: pulse-dot 1s infinite;
+  width: 4px;
+  height: 4px;
+  background: var(--color-concrete-0);
+  border-radius: 0;
+  /* Square for architecture */
+  animation: pulse-square 1s infinite;
 }
 
-@keyframes slideDown {
-  from {
-    transform: translateY(-10px);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes pulse-dot {
+@keyframes pulse-square {
   0% {
-    transform: scale(0.8);
-    opacity: 0.5;
+    opacity: 0.3;
   }
 
   50% {
-    transform: scale(1.2);
     opacity: 1;
   }
 
   100% {
-    transform: scale(0.8);
-    opacity: 0.5;
+    opacity: 0.3;
   }
 }
 
-/* Revision Action Bar - Top Level */
-.revision-action-bar {
+/* The Monolith: Revision Action Bar */
+/* 架构重构 Phase 1: Editor-Relative Positioning */
+.revision-dock-fixed {
   position: fixed;
   bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #111827;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 50px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  z-index: 1000;
-  white-space: nowrap;
-  min-width: max-content;
-  animation: slideUp 0.3s ease-out;
+  /* Do NOT use left: 50% viewport centering */
+  /* Parent element (#revision-dock) controls horizontal positioning */
+  z-index: 10000;
+  pointer-events: auto;
 }
 
-@keyframes slideUp {
+/* The Monolith: Revision Action Bar */
+.revision-action-bar {
+  /* Position is handled by parent portal wrapper (.revision-dock-fixed) */
+  position: relative;
+  background: var(--color-obsidian);
+  color: var(--color-concrete-0);
+  padding: var(--space-2) var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  z-index: 1000;
+  border: 1px solid var(--color-concrete-700);
+  box-shadow: var(--shadow-deep);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  /* Prevent line break */
+}
+
+.revision-info {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.revision-buttons {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.accept-all-btn,
+.reject-all-btn {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-concrete-0);
+  color: var(--color-obsidian);
+  border: 1px solid var(--color-concrete-0);
+}
+
+.accept-all-btn:hover {
+  background: var(--color-emerald);
+  border-color: var(--color-emerald);
+  color: var(--color-concrete-0);
+}
+
+
+.reject-all-btn:hover {
+  background: var(--color-ruby);
+  border-color: var(--color-ruby);
+  color: var(--color-concrete-0);
+}
+
+/* ================================================================= */
+/* REVISION & INTERACTION SYSTEM (Expert Panel V2.0 Fix) */
+/* ================================================================= */
+
+/* 1. Unified Revision Block Styling */
+.revision-paragraph-unified-top {
+  border: 1px solid var(--border-concrete);
+  /* Full border since bottom is no longer attached */
+  border-radius: var(--radius-md) !important;
+  background: var(--color-concrete-50);
+  padding: 16px 20px;
+  margin-top: 16px;
+  margin-bottom: 24px !important;
+  position: relative;
+  /* Anchor for absolute control panel */
+  transition: all 0.2s ease;
+}
+
+/* FLOATING TAB CONTROL PANEL (Folder Tab Style) */
+.revision-control-floating-tab {
+  position: absolute;
+  top: -36px;
+  /* Move UP into the margin - Increased slightly */
+  right: -1px;
+  /* Align with right border (minus border width) */
+
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+
+  height: 34px;
+  padding: 0 12px;
+
+  background: var(--color-concrete-50);
+  /* Match paragraph background */
+  border: 1px solid var(--border-concrete);
+  border-bottom: none !important;
+  /* CRITICAL: Merge with paragraph */
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+
+  z-index: 100;
+  /* Increased to ensure visibility */
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.02);
+  /* Subtle lift */
+  transition: all 0.2s ease;
+
+  pointer-events: auto;
+  /* Ensure clickable */
+  overflow: visible;
+}
+
+/* Hover Effect: Highlight the tab when hovering */
+.revision-control-floating-tab:hover {
+  background: #fff;
+  /* box-shadow: 0 -4px 12px rgba(0,0,0,0.05); */
+}
+
+/* REASON CONTAINER & ANIMATION */
+.revision-reason-container {
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+  /* Button on right, text expands left */
+}
+
+.revision-toggle-btn {
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.revision-toggle-btn:hover {
+  transform: scale(1.2) rotate(15deg);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.revision-reason-text-hidden {
+  font-size: 15px;
+  /* 增大 */
+  font-weight: 600;
+  /* 加粗 */
+  color: #1F2937;
+  /* 深灰/黑 */
+  font-family: var(--font-sans);
+  white-space: nowrap;
+  overflow: hidden;
+
+  /* Animation Props */
+  max-width: 0;
+  opacity: 0;
+  margin-right: 0;
+  transform: translateX(10px);
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* EXPANDED STATE (Triggered by JS toggle) */
+.revision-control-floating-tab.expanded .revision-reason-text-hidden {
+  max-width: 200px;
+  /* Adjust based on expected text length */
+  opacity: 1;
+  margin-right: 8px;
+  transform: translateX(0);
+}
+
+.revision-control-floating-tab.expanded .revision-toggle-btn {
+  transform: scale(1.1);
+}
+
+/* 2. Revision Reason Text */
+/* 2. Revision Reason Text - Hide or Styling */
+.revision-reason-text {
+  /* In floating mode, maybe hide reason text or make it a tooltip? */
+  /* Or display beside icons? Let's display it but make it small/subtle */
+  background: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-concrete);
+
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  /* Keep it single line */
+}
+
+/* 3. Button Group */
+.revision-btn-group {
+  display: flex;
+  gap: 6px;
+  margin-left: 4px;
+  padding-left: 8px;
+  border-left: 1px solid var(--border-concrete);
+  /* Separator */
+}
+
+.revision-btn {
+  width: 24px;
+  /* Smaller, sleeker */
+  height: 24px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.revision-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.revision-btn.accept:hover {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.revision-btn.reject:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.revision-btn.accept {
+  color: #059669;
+}
+
+.revision-btn.accept:hover {
+  background: #059669;
+  color: white;
+  border-color: #059669;
+  transform: scale(1.05);
+}
+
+.revision-btn.reject {
+  color: #dc2626;
+}
+
+.revision-btn.reject:hover {
+  background: #dc2626;
+  color: white;
+  border-color: #dc2626;
+  transform: scale(1.05);
+}
+
+
+/* ================================================================= */
+/* TIME MACHINE PREVIEW (Hover Effects) - Enhanced */
+/* ================================================================= */
+
+/* Future Preview (Green Glow) - 绿光预览 */
+.preview-future .inline-diff-delete {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+.preview-future .inline-diff-insert-widget {
+  /* 插入的内容变成正常文本 */
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  text-decoration: none !important;
+  font-weight: normal !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* The Glow Container */
+.preview-future {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.25) !important;
+  background: rgba(16, 185, 129, 0.05) !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Past Preview (Grey Out) - 灰显预览 */
+.preview-past .inline-diff-insert-widget {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+.preview-past .inline-diff-delete {
+  /* 删除的内容变成正常文本, 完全不透明 */
+  text-decoration: none !important;
+  color: inherit !important;
+  opacity: 1 !important;
+}
+
+.preview-past {
+  border-color: #9ca3af !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+  opacity: 1 !important;
+  /* Make container opaque so text is clear */
+}
+
+
+/* ================================================================= */
+/* CINEMATIC AI PRAISE (The Midas Touch) */
+/* ================================================================= */
+
+/* The Golden Shimmer Text Effect */
+.praise-text-shimmer {
+  background: linear-gradient(110deg,
+      #713f12 0%,
+      /* Shadowy Gold */
+      #ca8a04 40%,
+      /* Deep Gold */
+      #fef08a 50%,
+      /* Bright Highlight */
+      #ca8a04 60%,
+      /* Deep Gold */
+      #713f12 100%
+      /* Shadowy Gold */
+    );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 3s linear infinite;
+  font-weight: 700;
+  display: inline-block;
+}
+
+@keyframes shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* The Ambient Aura Container */
+.revision-praise-block {
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  background: linear-gradient(to bottom right, #fffbeb, #fefce8);
+  box-shadow: 0 4px 20px rgba(234, 179, 8, 0.15);
+  position: relative;
+  overflow: visible;
+  /* Allow floating elements to show */
+}
+
+/* Sparkling Particles (CSS Simulated) */
+.revision-praise-block::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 60%);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.revision-praise-block:hover::after {
+  opacity: 0.1;
+  animation: rotate 10s linear infinite;
+}
+
+@keyframes rotate {
   from {
-    transform: translate(-50%, 20px);
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ================================================================= */
+/* AI PRAISE (The Midas Touch) - Ambient & Cinematic */
+/* ================================================================= */
+
+/* 1. Ambient State: The Golden Thread */
+/* 1. Ambient State: The Golden Thread */
+.praise-underline {
+  /* User Feedback: "Make it Center Aligned, High Contrast" */
+  border-bottom: 2px solid #D4AF37;
+  /* Solid Gold Border */
+  background-color: rgba(255, 215, 0, 0.15);
+  /* Subtle highlight background */
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+@keyframes ambientShimmer {
+  0% {
+    border-bottom-color: rgba(255, 215, 0, 0.3);
+  }
+
+  50% {
+    border-bottom-color: rgba(255, 215, 0, 0.8);
+    box-shadow: 0 4px 6px -2px rgba(255, 215, 0, 0.2);
+  }
+
+  100% {
+    border-bottom-color: rgba(255, 215, 0, 0.3);
+  }
+}
+
+/* 2. Interaction State: The Awakening */
+.praise-underline:hover {
+  background-color: rgba(255, 215, 0, 0.3);
+  /* Darker on hover */
+  /* Remove fancy gradients if they cause readability issues */
+}
+
+/* 3. Floating Particles (CSS Only via Pseudo-elements) */
+.praise-underline::before,
+.praise-underline::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #FFD700;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.praise-underline:hover::before {
+  left: 20%;
+  bottom: 0;
+  animation: floatUp 1.5s ease-out infinite;
+}
+
+.praise-underline:hover::after {
+  left: 80%;
+  bottom: 0;
+  animation: floatUp 2s ease-out infinite 0.5s;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: translateY(-20px) scale(0);
+    opacity: 0;
+  }
+}
+
+/* 4. Gutter Icon (The Spark) */
+.praise-gutter-icon {
+  user-select: none;
+  cursor: default;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  animation: breathe 3s ease-in-out infinite;
+  color: #FFD700;
+  font-size: 14px;
+}
+
+/* 5. Solid Praise Card (Premium White) */
+/* 5. Custom Praise Card */
+/* REMOVED OLD CARD STYLES */
+.praise-custom-card {
+  display: none !important;
+}
+
+.praise-tooltip-content,
+.praise-tooltip-header,
+.praise-tooltip-body {
+  display: none;
+}
+
+
+/* 2. Interaction State: The Awakening (Liquid Gold Text) */
+.praise-underline:hover {
+  border-bottom-color: transparent;
+  /* Hide line */
+  background: linear-gradient(to right,
+      #785a00 0%,
+      #b8860b 20%,
+      #ffd700 50%,
+      #b8860b 80%,
+      #785a00 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  /* Fallback */
+  background-size: 200% auto;
+  animation: liquidGold 3s linear infinite;
+
+  /* Add Aura */
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+@keyframes liquidGold {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* 3. Gutter Icon (The Spark) */
+.praise-gutter-icon {
+  user-select: none;
+  cursor: default;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  animation: breathe 3s ease-in-out infinite;
+}
+
+@keyframes breathe {
+
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+/* [Legacy Glass Styles Removed] */
+
+/* --- REDESIGN: Floating Island Revision Bar (Docked) --- */
+.revision-action-bar-container {
+  position: sticky;
+  bottom: 32px;
+  /* Float above bottom of the SCROLL CONTAINER */
+  margin-top: -80px;
+  /* Overlap trick if needed, or just let it sit */
+  /* Actually, inside the dock, we just want it to flex center */
+  display: flex;
+  justify-content: center;
+  z-index: 1000;
+  pointer-events: none;
+  width: 100%;
+}
+
+.revision-action-bar {
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 8px 12px 8px 24px;
+  border-radius: 999px;
+  /* Capsule Shape */
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  box-shadow:
+    0 10px 30px -10px rgba(0, 0, 0, 0.15),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  animation: islandFloatUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  min-width: 400px;
+  justify-content: space-between;
+}
+
+@keyframes islandFloatUp {
+  from {
+    transform: translateY(100%);
     opacity: 0;
   }
 
   to {
-    transform: translate(-50%, 0);
+    transform: translateY(0);
     opacity: 1;
   }
 }
 
 .revision-info {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F2937;
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-weight: 500;
+  gap: 12px;
+  letter-spacing: -0.01em;
 }
 
-.badge {
-  background: #444;
-  padding: 2px 8px;
-  border-radius: 10px;
+.revision-info .badge {
+  background: #EFF6FF;
+  color: #2563EB;
+  padding: 4px 10px;
+  border-radius: 999px;
   font-size: 12px;
-  color: #aaa;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.1);
 }
 
 .revision-buttons {
   display: flex;
-  gap: 10px;
-}
-
-.accept-all-btn,
-.reject-all-btn {
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  cursor: pointer;
-  border: none;
-  font-weight: bold;
-  transition: all 0.2s;
+  gap: 8px;
 }
 
 .accept-all-btn {
-  background: #4caf50;
-  color: white;
+  background: #111827 !important;
+  /* Premium Black */
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 999px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  white-space: nowrap !important;
+  /* Force single line */
 }
 
 .accept-all-btn:hover {
-  background: #43a047;
-  transform: scale(1.05);
+  background: #000000 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15);
 }
 
 .reject-all-btn {
-  background: #f44336;
-  color: white;
+  background: transparent !important;
+  color: #6B7280 !important;
+  border: 1px solid transparent !important;
+  padding: 10px 16px !important;
+  border-radius: 999px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s;
+  white-space: nowrap !important;
+  /* Force single line */
 }
 
 .reject-all-btn:hover {
-  background: #e53935;
-  transform: scale(1.05);
+  background: #F3F4F6 !important;
+  color: #111827 !important;
+}
+
+/* --- PRAISE V5: Click-to-Reveal System --- */
+
+/* Base class for the text span */
+.praise-underline {
+  background-color: transparent !important;
+  /* Force no background on text */
+  background-image: none !important;
+  text-decoration: none !important;
+  border-bottom: none !important;
+  cursor: pointer;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto !important;
+}
+
+/* The Gold Line (Pseudo-element) */
+.praise-underline::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  /* Visible thin line */
+
+  /* Gradient: Transparent tips, Gold center */
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(212, 175, 55, 0.5) 20%,
+      rgba(255, 215, 0, 1.0) 50%,
+      rgba(212, 175, 55, 0.5) 80%,
+      transparent 100%);
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+
+  /* Animation: Breathe Opacity & Shimmer Position */
+  animation: praiseShimmer 3s infinite ease-in-out;
+  pointer-events: none;
+  border-radius: 1px;
+}
+
+@keyframes praiseShimmer {
+  0% {
+    background-position: 150% 0;
+    opacity: 0.5;
+  }
+
+  50% {
+    background-position: 50% 0;
+    opacity: 1;
+  }
+
+  100% {
+    background-position: -50% 0;
+    opacity: 0.5;
+  }
+}
+
+/* Hover State - strictly controls the line, not the text background */
+.praise-underline:hover {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.praise-underline:hover::before {
+  height: 2px;
+  /* Keep thin, don't expand to block */
+  opacity: 1;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      #D4AF37 10%,
+      #FFD700 50%,
+      #D4AF37 90%,
+      transparent 100%);
+  box-shadow: 0 1px 5px rgba(255, 215, 0, 0.5);
+  /* Subtle glow underneath */
+  animation: none;
+  /* Stop breathing */
+}
+
+/* 2. The Popover (Visual Surprise) */
+.praise-popover {
+  position: fixed;
+  z-index: 10001;
+
+  /* 50% { transform: translateY(-3px); }  -- BROKEN SYNTAX REMOVED */
+}
+
+.praise-text-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.praise-wow {
+  font-weight: 800;
+  font-size: 15px;
+  color: #111827;
+  letter-spacing: -0.01em;
+  margin-bottom: 2px;
+}
+
+.praise-reason {
+  font-size: 13px;
+  color: #4B5563;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+/* 3. Micro Animations (Pure CSS) */
+
+/* Sparkle */
+.icon-sparkle {
+  animation: spinSparkle 3s linear infinite;
+}
+
+@keyframes spinSparkle {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: rotate(180deg) scale(1.2);
+  }
+
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+/* Heart */
+.icon-heart {
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+/* Bulb */
+.icon-bulb {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    filter: drop-shadow(0 0 0px rgba(255, 215, 0, 0));
+  }
+
+  to {
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+  }
+}
+
+/* Fire */
+.icon-fire {
+  animation: flicker 1s ease-in-out infinite alternate;
+  transform-origin: bottom center;
+}
+
+@keyframes flicker {
+  0% {
+    transform: scale(1) skewX(0deg);
+  }
+
+  100% {
+    transform: scale(1.1) skewX(2deg);
+  }
+}
+
+
+/* --- V15.0: THE QUIET UNDERLINE (Color Coded & Static) --- */
+
+.ai-praise-highlight {
+  background-color: transparent !important;
+  text-decoration: none !important;
+  border: none !important;
+
+  /* USE BORDER-BOTTOM to strictly follow "Underline" request */
+  border-bottom: 2px solid #ccc !important;
+  padding-bottom: 0px !important;
+  margin: 0 !important;
+
+  cursor: pointer !important;
+  pointer-events: auto !important;
+
+  /* Remove all BG images from previous versions */
+  background-image: none !important;
+
+  /* No animations, purely static */
+  animation: none !important;
+  transition: border-color 0.2s ease, border-width 0.1s ease;
+}
+
+/* Color Coding based on Type (Attributes injected by Editor logic) */
+.ai-praise-highlight[data-praise-type="logic"] {
+  border-color: #00C853 !important;
+  /* Green */
+}
+
+.ai-praise-highlight[data-praise-type="emotion"] {
+  border-color: #FF4081 !important;
+  /* Pink */
+}
+
+.ai-praise-highlight[data-praise-type="rhetoric"] {
+  border-color: #FFD700 !important;
+  /* Gold */
+}
+
+.ai-praise-highlight[data-praise-type="insight"] {
+  border-color: #2962FF !important;
+  /* Blue */
+}
+
+/* Hover: Slightly thicker */
+.ai-praise-highlight:hover {
+  border-bottom-width: 3px !important;
+  opacity: 0.8;
+}
+
+/* Remove old pseudo-elements */
+.ai-praise-highlight::before,
+.ai-praise-highlight::after {
+  content: none !important;
 }

@@ -1,176 +1,47 @@
-import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react'; // Removed useMemo
 import { useEditor, EditorContent } from '@tiptap/react';
+import ReactDOM from 'react-dom'; // Import ReactDOM for Portals
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
-import { Plugin, PluginKey } from '@tiptap/pm/state';
-import { Decoration, DecorationSet } from '@tiptap/pm/view';
+// import { Plugin, PluginKey } from '@tiptap/pm/state'; // No longer needed directly for creation, but needed for keys? Keys are imported.
+import { DecorationSet } from '@tiptap/pm/view'; // Needed? Maybe for types if referenced
 import { useStore } from '../store/useStore';
 import { SelectionToolbar } from './SelectionToolbar';
-import type { ParagraphChange } from '../types';
+import type { ParagraphChange, PraiseHighlight } from '../types';
+import { praiseService } from '../services/praiseService';
+import { CinematicPraise } from './CinematicPraise'; // V15.0 Engine
 import './Editor.css';
 
-// Track Changes Plugin - Paragraph Level
-const trackChangesPluginKey = new PluginKey('trackChanges');
+// Imported Plugins
+import { createTrackChangesPlugin, trackChangesPluginKey } from '../editor/plugins/trackChangesPlugin';
+import type { TrackChangesAction } from '../editor/plugins/trackChangesPlugin';
+
+import { createPraisePlugin, praisePluginKey } from '../editor/plugins/praisePlugin';
+import type { PraiseAction } from '../editor/plugins/praisePlugin';
+
+
 
 export const EditorNew = () => {
-  const { content, setContent, fullTextRewrite, setFullTextRewrite, isRewriting } = useStore();
+  const { content, setContent, fullTextRewrite, setFullTextRewrite, isRewriting, readPraises, markPraiseAsRead } = useStore();
 
   const [showToolbar, setShowToolbar] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState({ x: 0, y: 0 });
+  // const [praiseTooltip, setPraiseTooltip] = useState<{ x: number, y: number, highlight: PraiseHighlight } | null>(null); // Removed V15
+  const [isPraising, setIsPraising] = useState(false);
+
 
   const editorRef = useRef<HTMLDivElement>(null);
 
-  // Create track changes plugin - Paragraph Level
-  const trackChangesPlugin = useMemo(() => {
-    return new Plugin({
-      key: trackChangesPluginKey,
 
-      state: {
-        init() {
-          return { decorations: DecorationSet.empty, paragraphChanges: [] as ParagraphChange[] };
-        },
 
-        apply(tr, oldState, _oldDocState, newDocState) {
-          // Check if metadata explicitly sets or clears paragraph changes
-          const metaParagraphChanges = tr.getMeta(trackChangesPluginKey) as ParagraphChange[] | undefined;
 
-          // If metadata is present, update the state (could be empty array to clear)
-          if (metaParagraphChanges !== undefined) {
-            console.log('🔄 [Plugin] 更新修订state, 段落数:', metaParagraphChanges.length);
 
-            if (metaParagraphChanges.length === 0) {
-              return { decorations: DecorationSet.empty, paragraphChanges: [] };
-            }
-
-            const decorations: Decoration[] = [];
-            const doc = newDocState.doc;
-
-            // 遍历文档中的所有段落节点
-            let paragraphIndex = 0;
-            doc.descendants((node, pos) => {
-              if (node.type.name === 'paragraph') {
-                // IMPORTANT: 必须跳过空段落，以保持索引与 paragraphDiff.ts 一致
-                if (node.textContent.trim().length === 0) {
-                  return;
-                }
-
-                // 查找该段落是否有对应的修改
-                const change = metaParagraphChanges.find(c => c.index === paragraphIndex);
-
-                if (change && change.type === 'modified' && change.inlineDiff) {
-                  const from = pos;
-                  const to = pos + node.nodeSize;
-                  const changeId = change.id;
-
-                  // 1. 隐藏原始段落
-                  decorations.push(
-                    Decoration.node(from, to, {
-                      class: 'paragraph-hidden',
-                    })
-                  );
-
-                  // 2. 创建替换Widget (显示Diff视图 + 按钮)
-                  decorations.push(
-                    Decoration.widget(from, () => {
-                      // 容器
-                      const wrapper = document.createElement('div');
-                      wrapper.className = 'paragraph-modified-wrapper diff-widget';
-                      wrapper.dataset.changeId = changeId;
-
-                      // 内容区域 (Diff HTML)
-                      const contentDiv = document.createElement('div');
-                      contentDiv.className = 'inline-diff-content';
-
-                      let diffHTML = '';
-                      change.inlineDiff!.forEach(part => {
-                        if (part.type === 'delete') {
-                          diffHTML += `<span class="inline-diff-delete">${escapeHTML(part.text)}</span>`;
-                        } else if (part.type === 'insert') {
-                          diffHTML += `<span class="inline-diff-insert">${escapeHTML(part.text)}</span>`;
-                        } else {
-                          diffHTML += `<span>${escapeHTML(part.text)}</span>`;
-                        }
-                      });
-                      contentDiv.innerHTML = diffHTML;
-                      contentDiv.innerHTML = diffHTML;
-                      wrapper.appendChild(contentDiv);
-
-                      // Reason Tooltip (New)
-                      if (change.reason) {
-                        const reasonDiv = document.createElement('div');
-                        reasonDiv.className = 'diff-reason-tooltip';
-                        reasonDiv.textContent = `💡 ${change.reason}`;
-                        wrapper.appendChild(reasonDiv);
-                        // Add class to wrapper to trigger styles
-                        wrapper.classList.add('has-reason');
-                      }
-
-                      // 按钮区域
-                      const actionsDiv = document.createElement('div');
-                      actionsDiv.className = 'paragraph-actions';
-
-                      const acceptBtn = document.createElement('button');
-                      acceptBtn.className = 'paragraph-action-btn accept';
-                      acceptBtn.innerHTML = '✓';
-                      acceptBtn.title = '接受修改';
-                      acceptBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        window.dispatchEvent(new CustomEvent('accept-paragraph-change', { detail: { changeId } }));
-                      };
-
-                      const rejectBtn = document.createElement('button');
-                      rejectBtn.className = 'paragraph-action-btn reject';
-                      rejectBtn.innerHTML = '✗';
-                      rejectBtn.title = '拒绝修改';
-                      rejectBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        window.dispatchEvent(new CustomEvent('reject-paragraph-change', { detail: { changeId } }));
-                      };
-
-                      actionsDiv.appendChild(acceptBtn);
-                      actionsDiv.appendChild(rejectBtn);
-                      wrapper.appendChild(actionsDiv);
-
-                      return wrapper;
-                    }, { side: -1 }) // side: -1 ensure it renders before the node content
-                  );
-                }
-
-                paragraphIndex++;
-              }
-            });
-
-            // Helper function to escape HTML
-            function escapeHTML(text: string): string {
-              const div = document.createElement('div');
-              div.textContent = text;
-              return div.innerHTML;
-            }
-
-            const decorationSet = DecorationSet.create(doc, decorations);
-            console.log('✅ [Plugin] 创建了', decorations.length, '个修订标记');
-            return { decorations: decorationSet, paragraphChanges: metaParagraphChanges };
-          }
-
-          // No metadata: keep the old state unchanged
-          return oldState;
-        },
-      },
-
-      props: {
-        decorations(state) {
-          const pluginState = this.getState(state);
-          return pluginState ? pluginState.decorations : DecorationSet.empty;
-        },
-      },
-    });
-  }, []);
 
   const editor = useEditor({
     extensions: [
       StarterKit,
       Placeholder.configure({
-        placeholder: '开始写点什么吧... 💭',
+        placeholder: '开始写点什么吧...',
       }),
     ],
     content,
@@ -180,8 +51,9 @@ export const EditorNew = () => {
       },
     },
     onCreate: ({ editor }) => {
-      // Register track changes plugin
-      editor.registerPlugin(trackChangesPlugin);
+      // Register track changes plugin (Factory Pattern)
+      editor.registerPlugin(createTrackChangesPlugin());
+      editor.registerPlugin(createPraisePlugin());
     },
     onUpdate: ({ editor }) => {
       // 只有不在改写模式下才自动同步内容，避免冲突
@@ -192,13 +64,28 @@ export const EditorNew = () => {
     },
   });
 
+  // Conflict Resolution: Clear Praise when in Revision Mode
+  useEffect(() => {
+    if (!editor) return;
+
+    if (fullTextRewrite) {
+      // User Feedback: "Don't mix Praise with Revision"
+      // Hide Ambient Praise when doing heavy lifting
+      const tr = editor.state.tr;
+      tr.setMeta(praisePluginKey, { type: 'CLEAR_PRAISE' });
+      editor.view.dispatch(tr);
+    }
+    // No else needed
+  }, [fullTextRewrite, editor]);
+
   // Apply Changes Effect (Keep strict sync logic)
   useEffect(() => {
     if (!editor || !fullTextRewrite) {
       // 清空decorations
       if (editor) {
         const tr = editor.state.tr;
-        tr.setMeta(trackChangesPluginKey, []);
+        const action: TrackChangesAction = { type: 'SET_CHANGES', changes: [] };
+        tr.setMeta(trackChangesPluginKey, action);
         editor.view.dispatch(tr);
       }
       return;
@@ -207,28 +94,28 @@ export const EditorNew = () => {
     console.log('🎨 [EditorNew] 进入段落级修订模式（内联diff）');
     console.log('📦 [EditorNew] 段落修改数量:', fullTextRewrite.paragraphChanges?.length || 0);
 
-    if (fullTextRewrite.paragraphChanges && fullTextRewrite.paragraphChanges.length > 0) {
-      console.log('📊 [EditorNew] 段落修改详情:', fullTextRewrite.paragraphChanges.map(c => ({
-        index: c.index,
-        type: c.type,
-        hasInlineDiff: !!c.inlineDiff,
-        inlineDiffLength: c.inlineDiff?.length,
-        originalPreview: c.originalText?.substring(0, 50)
-      })));
-    }
-
-    // 重要：不再替换整个文档内容，保留原有格式
     // 只应用段落级装饰
     if (fullTextRewrite.paragraphChanges && fullTextRewrite.paragraphChanges.length > 0) {
       const tr = editor.state.tr;
-      tr.setMeta(trackChangesPluginKey, fullTextRewrite.paragraphChanges);
+      const action: TrackChangesAction = {
+        type: 'SET_CHANGES',
+        changes: fullTextRewrite.paragraphChanges
+      };
+      tr.setMeta(trackChangesPluginKey, action);
       editor.view.dispatch(tr);
     }
 
     // 注意：不锁定编辑器，因为需要保留选择功能用于划词
     // Widget装饰已经替换了段落内容，用户无法直接编辑修订的段落
-    console.log('✅ [EditorNew] 修订模式已激活，保持编辑器可交互');
-  }, [editor, fullTextRewrite]);
+  }, [fullTextRewrite, editor]);
+
+  // FIX V15: Dedicated handling for Read Status Updates (Burn After Reading)
+  useEffect(() => {
+    if (!editor) return;
+    const tr = editor.state.tr;
+    tr.setMeta(praisePluginKey, { type: 'UPDATE_READ_STATUS' });
+    editor.view.dispatch(tr);
+  }, [readPraises, editor]);
 
   // Handle Accept Single Paragraph
   const handleAcceptParagraph = useCallback((changeId: string) => {
@@ -240,40 +127,76 @@ export const EditorNew = () => {
     const change = fullTextRewrite.paragraphChanges.find(c => c.id === changeId);
     if (!change) return;
 
-    // 在文档中找到对应的段落并替换内容
-    let paragraphIndex = 0;
-    let found = false;
+    // ROBUST SEARCH: Use Decorations instead of scanning paragraphs by index
+    // This allows us to find the correct paragraph even if indices are shifted.
+    const pluginState = trackChangesPluginKey.getState(editor.state);
+    if (!pluginState) return;
 
-    editor.state.doc.descendants((node, pos) => {
-      if (found) return false; // 已找到，停止遍历
+    const decorations = pluginState.decorations.find();
+    // Find decoration for this changeId.
+    // We look for the "container" decoration which is a 'node' decoration with the data attribute.
+    const targetDeco = decorations.find(d =>
+      d.spec['data-revision-id'] === changeId
+    );
 
-      if (node.type.name === 'paragraph') {
-        // IMPORTANT: 跳过空段落，保持索引一致
-        if (node.textContent.trim().length === 0) {
-          return;
-        }
+    let targetPos = -1;
+    let targetSize = 0;
 
-        if (paragraphIndex === change.index) {
-          if (change.type === 'modified' && change.improvedText) {
-            // 替换段落内容
-            const tr = editor.state.tr;
-            tr.replaceWith(pos, pos + node.nodeSize, editor.schema.text(change.improvedText));
-            editor.view.dispatch(tr);
-          } else if (change.type === 'deleted') {
-            // 删除段落
-            const tr = editor.state.tr;
-            tr.delete(pos, pos + node.nodeSize);
-            editor.view.dispatch(tr);
+    if (targetDeco) {
+      targetPos = targetDeco.from;
+      targetSize = targetDeco.to - targetDeco.from;
+      console.log(`🎯 [Position Found] via Decoration: ${targetPos} - ${targetDeco.to}`);
+    } else {
+      console.warn('⚠️ [Position Warning] Decoration not found, falling back to index scan (unreliable)');
+      // Fallback (Logic from before, just in case)
+      let paragraphIndex = 0;
+      let found = false;
+      editor.state.doc.descendants((node, pos) => {
+        if (found) return false;
+        if (node.type.name === 'paragraph') {
+          if (node.textContent.trim().length === 0) return;
+          if (paragraphIndex === change.index) {
+            targetPos = pos;
+            targetSize = node.nodeSize;
+            found = true;
           }
-          found = true;
+          paragraphIndex++;
         }
+      });
+    }
 
-        paragraphIndex++;
+    if (targetPos !== -1) {
+      if (change.type === 'modified' && change.improvedText) {
+        // 替换段落内容 (Modification usually keeps 1 paragraph -> 1 paragraph)
+        const tr = editor.state.tr;
+        // Use replaceWith to swap content.
+        tr.replaceWith(targetPos, targetPos + targetSize, editor.schema.text(change.improvedText));
+        editor.view.dispatch(tr);
+      } else if (change.type === 'deleted') {
+        // 删除段落 (Count decreases!)
+        const tr = editor.state.tr;
+        tr.delete(targetPos, targetPos + targetSize);
+        editor.view.dispatch(tr);
       }
-    });
+    }
+
+    // INDEX FIX: Re-calculate indices for remaining changes
+    // If we deleted a paragraph, subsequent indices must shift down.
+    // Assuming 'deleted' reduces count by 1. 'modified' keeps count.
+    const isDeletion = change.type === 'deleted';
 
     // 从列表中移除已处理的修改
-    const updatedChanges = fullTextRewrite.paragraphChanges.filter(c => c.id !== changeId);
+    let updatedChanges = fullTextRewrite.paragraphChanges.filter(c => c.id !== changeId);
+
+    if (isDeletion) {
+      console.log('📉 [Index Shift] Detected Deletion, adjusting indices for subsequent changes...');
+      updatedChanges = updatedChanges.map(c => {
+        if (c.index > change.index) {
+          return { ...c, index: c.index - 1 };
+        }
+        return c;
+      });
+    }
 
     // 如果所有修改都处理完了，清空修订状态
     if (updatedChanges.length === 0) {
@@ -294,7 +217,26 @@ export const EditorNew = () => {
 
     console.log('❌ [EditorNew] 拒绝段落修改:', changeId);
 
+    // ROBUST SEARCH: Use Decorations
+    const pluginState = trackChangesPluginKey.getState(editor.state);
+    if (!pluginState) return;
+
+    const decorations = pluginState.decorations.find();
+    // Find decoration for this changeId.
+    const targetDeco = decorations.find(d =>
+      d.spec['data-revision-id'] === changeId
+    );
+
+    if (targetDeco) {
+      console.log(`🎯 [Reject Position Found] via Decoration: ${targetDeco.from}`);
+      // No DOM manipulation needed for reject, just state update
+    } else {
+      console.warn('⚠️ [Reject Warning] Decoration not found');
+    }
+
     // 从列表中移除被拒绝的修改（保持原文不变）
+    // Index shifting is NOT required for Rejection because we keep the original paragraph
+    // So 1 paragraph -> 1 paragraph. Count preserved. Indices stable.
     const updatedChanges = fullTextRewrite.paragraphChanges.filter(c => c.id !== changeId);
 
     // 如果所有修改都处理完了，清空修订状态
@@ -315,35 +257,8 @@ export const EditorNew = () => {
     if (!fullTextRewrite?.paragraphChanges || !editor) return;
 
     const tr = editor.state.tr;
-
-    // We need to be careful with positions shifting if we delete nodes.
-    // However, since we replacing node-by-node, if we iterate carefully or use mapping, it might work.
-    // Easier approach: Iterate document once, check if index matches any change, apply it.
-
-    // Since we are modifying the document, it's safer to do it in one pass or use a mapping.
-    // But for simplicity in this specific "Paragraph Substitution" model:
-    // We can just re-use the loop logic but applied to all.
-
     let paragraphIndex = 0;
-
-    // We map changes by index for O(1) lookup
     const changesByIndex = new Map(fullTextRewrite.paragraphChanges.map(c => [c.index, c]));
-
-    // We must traverse carefully. If we delete a node, we can't continue traversing easily with descendants.
-    // Better strategy: Collect all transaction steps first, then apply? 
-    // Or just apply one by one and rely on ProseMirror tracking? 
-    // ProseMirror `tr` handles mapping.
-
-    // Let's try applying from BOTTOM to TOP to avoid index shifting issues?
-    // While paragraph INDEX won't change if we just replace content.
-    // If we delete paragraphs, subsequent indices shift.
-    // But our `changesByIndex` is based on the OLD document state.
-
-    // So if we have changes at Index 1 and Index 3. 
-    // If we delete Index 1. Index 3 becomes Index 2 in the NEW doc.
-    // But we need to touch Index 3 of the OLD doc.
-
-    // Correct approach: Traverse doc, find positions of all target paragraphs.
     const targets: { pos: number, size: number, change: ParagraphChange }[] = [];
 
     editor.state.doc.descendants((node, pos) => {
@@ -392,16 +307,104 @@ export const EditorNew = () => {
       }
     };
 
+    const handlePraiseClick = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      /* Removed V15 Legacy Tooltip Logic */
+    };
+
+    // Remove legacy Time Machine event listener because we handle it via plugin HandleDOMEvents now
+    // But we still need these Custom Events for the buttons
     window.addEventListener('accept-paragraph-change', handleAccept);
     window.addEventListener('reject-paragraph-change', handleReject);
-    window.addEventListener('apply-suggestion-event', handleApplySuggestion);
+    window.addEventListener('apply-suggestion', handleApplySuggestion);
+    // window.addEventListener('praise-click', handlePraiseClick); // Moved to CinematicPraise
 
     return () => {
       window.removeEventListener('accept-paragraph-change', handleAccept);
       window.removeEventListener('reject-paragraph-change', handleReject);
-      window.removeEventListener('apply-suggestion-event', handleApplySuggestion);
+      window.removeEventListener('apply-suggestion', handleApplySuggestion);
+      // window.removeEventListener('praise-click', handlePraiseClick);
     };
   }, [handleAcceptParagraph, handleRejectParagraph, editor]);
+
+  // Handle Praise Generation
+  // Internal function to be called by debounce
+
+  // Ambient Trigger Strategy: Debounce on content change
+  // Trigger 4 seconds after typing stops, if content length > 50
+  // To save tokens, we might only do this once per session or on specific milestones
+  // For this MVP, we will use a "Reflective Pause" trigger.
+
+  // Ref to track last content to avoid duplicate checks
+  const lastAnalyzedContent = useRef('');
+
+  // V17: 增量夸夸系统 - 每300字自动触发
+  useEffect(() => {
+    if (!editor || fullTextRewrite || isPraising) return;
+
+    const timer = setTimeout(async () => {
+      const text = editor.getText();
+      const currentLength = text.length;
+
+      // 获取store中的夸奖状态
+      const { wordCountState, setPraiseRecord, setWordCount } = useStore.getState();
+      const { total: lastCount } = wordCountState;
+      const increment = currentLength - lastCount;
+
+      console.log(`📊 [Praise Monitor] Current: ${currentLength}, Last: ${lastCount}, Increment: ${increment}`);
+
+      // 检查是否达到300字阈值
+      if (increment >= 300 && currentLength > 10) {
+        console.log(`✨ [Praise Trigger] Threshold reached! Generating praise...`);
+        setIsPraising(true);
+
+        try {
+          const result = await praiseService.generateIncrementalPraise(text, lastCount);
+
+          if (result && result.praises) {
+            console.log('🎉 [Praise] Generated:', result.praises.length, 'praises');
+
+            // 添加每个夸奖到store并触发视觉效果
+            result.praises.forEach((praise: any, index: number) => {
+              const praiseRecord = {
+                id: `praise-${Date.now()}-${index}`,
+                timestamp: Date.now(),
+                wordCount: currentLength,
+                type: praise.type || 'progress',
+                quote: praise.quote || '',
+                wow: praise.wow || '不错！',
+                reason: praise.reason || '',
+                isRead: false
+              };
+
+              setPraiseRecord(praiseRecord);
+
+              // 触发cinematic效果
+              setTimeout(() => {
+                const event = new CustomEvent('showPraise', {
+                  detail: {
+                    text: praise.wow,
+                    effect: 'confetti' // 可以根据type选择不同效果
+                  }
+                });
+                window.dispatchEvent(event);
+              }, index * 500); // 错开显示
+            });
+
+            // 更新字数状态
+            setWordCount(currentLength, lastCount);
+          }
+        } catch (e) {
+          console.error('❌ [Praise] Generation failed:', e);
+        } finally {
+          setIsPraising(false);
+        }
+      }
+    }, 2000); // 2秒debounce
+
+    return () => clearTimeout(timer);
+  }, [editor?.state.doc.content.size, fullTextRewrite, isPraising]);
+
 
   // Handle text selection for toolbar
   useEffect(() => {
@@ -409,11 +412,6 @@ export const EditorNew = () => {
 
     const handleSelectionUpdate = () => {
       try {
-        // if (fullTextRewrite) {
-        //   setShowToolbar(false);
-        //   return;
-        // }
-
         const { from, to } = editor.state.selection;
         if (from === to) {
           setShowToolbar(false);
@@ -496,6 +494,8 @@ export const EditorNew = () => {
     }
   }, [editor]);
 
+  /* Legacy UseEffect Removed */
+
   return (
     <div className="editor-wrapper" ref={editorRef} style={{ position: 'relative' }}>
       <EditorContent editor={editor} />
@@ -504,7 +504,7 @@ export const EditorNew = () => {
       {isRewriting && (
         <div className="ai-processing-status">
           <div className="status-dot"></div>
-          <span>AI正在后台修订中...</span>
+          <span>AI 分析中...</span>
         </div>
       )}
 
@@ -513,19 +513,38 @@ export const EditorNew = () => {
         <SelectionToolbar position={toolbarPosition} editor={editor} onGetSuggestion={handleGetSuggestion} />
       )}
 
-      {/* Revision Action Bar */}
-      {fullTextRewrite && (
-        <div className="revision-action-bar">
-          <div className="revision-info">
-            <span>📝 修订模式</span>
-            <span className="badge">{fullTextRewrite.paragraphChanges?.length || 0} 个修改</span>
+      {/* 修订栏Fixed悬浮 - Portal到body，始终可见 */}
+      {/* 架构重构: 动态计算编辑器中心位置 */}
+      {fullTextRewrite && ReactDOM.createPortal(
+        <div
+          className="revision-dock-fixed"
+          style={{
+            left: editorRef.current
+              ? `${editorRef.current.getBoundingClientRect().left + editorRef.current.offsetWidth / 2}px`
+              : '50%',
+            transform: 'translateX(-50%)'
+          }}
+        >
+          <div className="revision-action-bar">
+            <div className="revision-info">
+              <span>修订模式</span>
+              <span className="badge">{fullTextRewrite.paragraphChanges?.length || 0} 处建议</span>
+            </div>
+            <div className="revision-buttons">
+              <button className="accept-all-btn" onClick={handleAcceptAll}>全部采纳</button>
+              <button className="reject-all-btn" onClick={handleRejectAll}>全部忽略</button>
+            </div>
           </div>
-          <div className="revision-buttons">
-            <button className="accept-all-btn" onClick={handleAcceptAll}>✓ 全部接受</button>
-            <button className="reject-all-btn" onClick={handleRejectAll}>✗ 全部拒绝</button>
-          </div>
-        </div>
+        </div>,
+        document.body
       )}
+
+
+
+      {/* V15.0: Cinematic Praise (The 12-Effect Engine) */}
+      <CinematicPraise />
+
     </div>
   );
 };
+

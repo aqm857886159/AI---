@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { openRouterService } from '../services/openrouter';
-import { Sparkles, Loader2, Check, RefreshCw, Wand2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import './TitleGenerator.css';
 
 export const TitleGenerator = () => {
@@ -39,8 +39,11 @@ export const TitleGenerator = () => {
 
       const suggestion = await openRouterService.generateTitle(plainText);
       setTitleSuggestion(suggestion);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '生成失败，再试一次吧~');
+    } catch (err: any) {
+      const errorMessage = err.message === 'KEY_LIMIT_EXCEEDED'
+        ? 'API 额度不足，请检查 OpenRouter 设置'
+        : (err.message || '生成失败，再试一次吧~');
+      setError(errorMessage);
     } finally {
       setTitleGenerating(false);
     }
@@ -65,7 +68,7 @@ export const TitleGenerator = () => {
         <input
           type="text"
           className="title-input"
-          placeholder="给文章起个标题吧..."
+          placeholder="无标题"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
@@ -76,21 +79,18 @@ export const TitleGenerator = () => {
         >
           {isTitleGenerating ? (
             <>
-              <Loader2 className="animate-spin" size={16} />
-              <span>想ing...</span>
+              <Loader2 className="animate-spin" size={12} />
+              <span className="generating-pulse">正在生成...</span>
             </>
           ) : (
-            <>
-              <Wand2 size={16} />
-              <span>标题生成</span>
-            </>
+            <span>✨ 生成标题</span>
           )}
         </button>
       </div>
 
       {error && (
         <div className="error-message">
-          {error}
+          [System Error]: {error}
         </div>
       )}
 
@@ -98,17 +98,17 @@ export const TitleGenerator = () => {
         <div className="title-suggestion">
           <div className="suggestion-bubble">
             <p className="suggestion-reason">
-              <Sparkles size={14} color="#F59E0B" style={{ display: 'inline', marginRight: 4 }} />
-              {titleSuggestion.reason}
+              <span style={{ marginRight: '6px' }}>💡</span>
+              <strong>思考脉络：</strong>{titleSuggestion.reason}
             </p>
             <div className="suggested-title">{titleSuggestion.title}</div>
           </div>
           <div className="suggestion-actions">
             <button className="accept-btn" onClick={handleAccept}>
-              <Check size={16} /> 用这个
+              应用
             </button>
             <button className="reject-btn" onClick={handleReject}>
-              <RefreshCw size={16} /> 换一个
+              换一个
             </button>
           </div>
         </div>

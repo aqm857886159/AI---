@@ -1,68 +1,94 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Serif+SC:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+SC:wght@400;600&display=swap');
 
 :root {
-  /* --- Premium Color Palette (Editorial/Notion-inspired) --- */
+  /* --- Design Tokens 3.0: Paper & Ink --- */
 
-  /* Brand/Primary - Deep Indigo */
-  --pk-brand-50: #f0f4ff;
-  --pk-brand-100: #e0e7ff;
-  --pk-brand-500: #6366f1;
-  /* Premium Blurple */
-  --pk-brand-600: #4f46e5;
-  --pk-brand-700: #4338ca;
-  --pk-brand-900: #312e81;
+  /* Neutral: Architectural Paper & Ink */
+  --color-concrete-0: #FFFFFF;
+  --color-concrete-50: #FBFBFA;
+  --color-concrete-100: #F8F7F4;
+  /* Gallery Warm White */
+  --color-concrete-200: #F1F0EC;
+  --color-concrete-300: #E5E4E0;
+  --color-concrete-400: #A8A7A3;
+  --color-concrete-700: #4A4947;
+  --color-concrete-800: #2D2C2A;
+  --color-concrete-900: #1A1A1A;
+  /* Deep Charcoal Ink */
 
-  /* Neutral Scale - Soft, Warm Greys (Paper-like) */
-  --pk-neutral-0: #ffffff;
-  --pk-neutral-50: #fafafa;
-  /* Main Page Background */
-  --pk-neutral-100: #f5f5f5;
-  /* Hover states */
-  --pk-neutral-200: #e5e5e5;
+  /* Material States */
+  --bg-app: var(--color-concrete-100);
+  --bg-sidebar: var(--color-concrete-200);
+  --bg-card: var(--color-concrete-0);
+
+  /* Typography */
+  --text-primary: var(--color-concrete-900);
+  --text-secondary: var(--color-concrete-700);
+  --text-muted: var(--color-concrete-400);
+
+  /* Semantic & Branding */
+  --color-accent: #2563EB;
+  /* Cobalt Focus */
+  --color-success: #059669;
+  /* Forest Green */
+  --color-error: #DC2626;
+  /* Deep Red */
+  --color-obsidian: #1A1A1A;
+
+  /* Fonts */
+  --font-sans: 'Inter', -apple-system, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-serif: 'Noto Serif SC', serif;
+
+  /* Spacing (8px Grid) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 48px;
+  --space-8: 64px;
+  --space-10: 80px;
+  --space-20: 160px;
+
+  /* Borders & Shadows */
+  --border-width: 1px;
+  --border-concrete: var(--color-concrete-300);
+  --shadow-architectural: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-deep: 0 12px 24px rgba(0, 0, 0, 0.05);
+
+  /* Radius (More Rounded for Comfort) */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* --- Semantic Layer (Expert Panel Approved) --- */
+
+  /* Surfaces */
+  --bg-surface-paper: var(--color-concrete-50);
+  --bg-surface-float: var(--color-concrete-0);
+
   /* Borders */
-  --pk-neutral-300: #d4d4d4;
-  --pk-neutral-500: #737373;
-  /* Secondary Text */
-  --pk-neutral-700: #404040;
-  /* Primary Text */
-  --pk-neutral-900: #171717;
-  /* Titles */
+  --border-subtle: var(--color-concrete-200);
 
-  /* Semantic Colors - Sophisticated Tones */
-  --pk-success-bg: #ecfdf5;
-  --pk-success-text: #047857;
-  --pk-success-border: #d1fae5;
+  /* Typography Semantic */
+  --text-body: var(--color-concrete-800);
 
-  --pk-warning-bg: #fffbeb;
-  --pk-warning-text: #b45309;
-  --pk-warning-border: #fef3c7;
+  /* State Colors (Diff & Revision) */
+  --diff-add-bg: rgba(5, 150, 105, 0.1);
+  /* Soft Emerald Background */
+  --diff-add-text: #059669;
+  /* Emerald Text */
+  --diff-del-bg: rgba(220, 38, 38, 0.1);
+  /* Soft Red Background */
+  --diff-del-text: #dc2626;
+  /* Red Text */
 
-  --pk-error-bg: #fef2f2;
-  --pk-error-text: #b91c1c;
-  --pk-error-border: #fee2e2;
-
-  /* --- Typography --- */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-serif: 'Noto Serif SC', 'Songti SC', serif;
-
-  /* --- Shadows & Depth --- */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-float: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-
-  /* --- Radius --- */
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-full: 9999px;
-
-  /* --- Transitions --- */
-  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-  /* Apple-like spring */
+  /* Shadows (Elevated) */
+  --shadow-float: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* Base Reset */
+/* Base Reset & Architecture */
 * {
   margin: 0;
   padding: 0;
@@ -73,45 +99,56 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--pk-neutral-50);
-  color: var(--pk-neutral-900);
-  line-height: 1.6;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  line-height: 1.5;
   min-height: 100vh;
+  margin: 0;
   overflow: hidden;
-  /* App handles scroll */
+  /* App handled by main-viewport and segments */
 }
 
-/* Scrollbar Polish */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: all 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+input,
+textarea {
+  font-family: inherit;
+}
+
+/* Scrollbar: Hidden or Minimal */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--bg-app);
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.1);
+  background: var(--color-concrete-400);
   border-radius: 99px;
-  border: 2px solid transparent;
-  background-clip: content-box;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.2);
+/* Global Transitions */
+.fade-in {
+  animation: fadeIn 300ms ease forwards;
 }
 
-/* Shared Utilities */
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
 
-.flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

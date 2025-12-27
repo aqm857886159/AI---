@@ -35,7 +35,7 @@ export const Settings = () => {
     <div className="settings-overlay" onClick={() => setShowSettings(false)}>
       <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
         <div className="settings-header">
-          <h2>⚙️ 设置</h2>
+          <h2>偏好设置</h2>
           <button className="close-btn" onClick={() => setShowSettings(false)}>
             ✕
           </button>
@@ -44,7 +44,7 @@ export const Settings = () => {
         <div className="settings-content">
           <div className="setting-group">
             <label className="setting-label">
-              OpenRouter API Key
+              API 密钥 (OpenRouter)
               <span className="required">*</span>
             </label>
             <input
@@ -87,7 +87,7 @@ export const Settings = () => {
             onClick={handleSave}
             disabled={!apiKey}
           >
-            {saved ? '✓ 已保存！' : '💾 保存设置'}
+            {saved ? '已保存' : '保存设置'}
           </button>
         </div>
       </div>

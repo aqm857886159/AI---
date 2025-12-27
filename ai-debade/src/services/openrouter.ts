@@ -60,24 +60,35 @@ class OpenRouterService {
 
       const data = await response.json();
       return data.choices[0]?.message?.content || '';
-    } catch (error) {
+    } catch (error: any) {
       console.error('OpenRouter API调用失败:', error);
+
+      // 增强错误信息，透传给UI层
+      if (error.message && (error.message.includes('Key limit exceeded') || error.message.includes('403'))) {
+        throw new Error('KEY_LIMIT_EXCEEDED');
+      }
+
       throw error;
     }
   }
 
   // 生成标题
   async generateTitle(content: string): Promise<{ title: string; reason: string }> {
-    const prompt = `请为以下文章生成一个吸引人的标题。要求：
+    const prompt = `请为以下文章生成一个吸引人的标题。
+
+【要求】
 1. 标题要简洁有力，最好在15字以内
 2. 要能抓住文章的核心亮点
 3. 可以使用一些有趣的修辞手法
 4. 不要太标题党，但也不要太平淡
 
-文章内容：
-${content}
+【待分析文章内容】
+<article_content>
+${content.substring(0, 3000)}
+</article_content>
 
-请直接以JSON格式回复，不要使用markdown代码块包装：
+【回复格式】
+请直接以JSON格式回复，格式如下：
 {
   "title": "标题内容",
   "reason": "为什么推荐这个标题（1句话，要有趣友好）"
@@ -226,14 +237,14 @@ ${content}
   {
     "index": 0, // 对应输入的index
     "text": "优化后的文本...", 
-    "reason": "简短的修改理由(10字以内)" 
+    "reason": "简短的修改理由(50字以内)" 
   }
 ]
 
 【严格规则】
 1. **结构对应**：必须为每一个输入的 paragraphs 生成对应的输出项，不要合并段落，不要拆分段落。
 2. **修改原则**：修正错别字、语病，优化表达流畅度。如果某段无需修改，请返回原文本，理由填"保持原样"。
-3. **Reason字段**：必须提供具体的修改理由，例如"修正错别字"、"优化语句通顺"、"增强语气"等。禁止使用"选区优化"这种笼统的词。
+3. **Reason字段**：必须提供具体的修改理由，50字以内，例如"修正错别字"、"优化语句通顺"、"增强语气"等。禁止使用"选区优化"这种笼统的词。
 4. **纯JSON**：只输出JSON，不要markdown代码块，不要其他废话。`;
 
     const userPrompt = `【特别指导意见】\n${guideline || '请优化这段文字，使其更通顺专业。'}\n\n【待修改段落】\n${inputJSON}`;
