@@ -22,6 +22,12 @@
   color: var(--text-primary);
   outline: none;
   transition: all 400ms var(--ease-spring);
+  /* textarea specific styles */
+  resize: none;
+  overflow: hidden;
+  min-height: 2rem;
+  line-height: 1.4;
+  word-wrap: break-word;
 }
 
 .title-input:focus {

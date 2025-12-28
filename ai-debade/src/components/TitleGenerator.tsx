@@ -65,12 +65,17 @@ export const TitleGenerator = () => {
   return (
     <div className="title-generator">
       <div className="title-input-wrapper">
-        <input
-          type="text"
+        <textarea
           className="title-input"
           placeholder="无标题"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => {
+            setTitle(e.target.value);
+            // 自动调整高度
+            e.target.style.height = 'auto';
+            e.target.style.height = e.target.scrollHeight + 'px';
+          }}
+          rows={1}
         />
         <button
           className="generate-btn"
@@ -83,7 +88,7 @@ export const TitleGenerator = () => {
               <span className="generating-pulse">正在生成...</span>
             </>
           ) : (
-            <span>✨ 生成标题</span>
+            <span>起个好名</span>
           )}
         </button>
       </div>
@@ -105,10 +110,10 @@ export const TitleGenerator = () => {
           </div>
           <div className="suggestion-actions">
             <button className="accept-btn" onClick={handleAccept}>
-              应用
+              就它了
             </button>
             <button className="reject-btn" onClick={handleReject}>
-              换一个
+              再想想
             </button>
           </div>
         </div>

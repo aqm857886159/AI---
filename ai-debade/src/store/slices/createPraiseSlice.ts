@@ -1,53 +1,67 @@
-import type { PraiseRecord, WritingStats } from '../../types';
+/**
+ * @module store/slices/createPraiseSlice
+ * @description 夸夸状态管理 - 单一职责：管理夸夸历史和字数状态
+ */
+
+import type { PraiseRecord, WritingStats, WordCountState } from '../../features/praise/types';
+import { PRAISE_TRIGGER_THRESHOLD } from '../../config/constants';
 
 export interface PraiseSlice {
     // State
     praiseHistory: PraiseRecord[];
-    wordCountState: {
-        total: number;
-        lastPraisedAt: number;
-        threshold: number;
-    };
+    wordCountState: WordCountState;
     readPraises: Set<string>;
 
     // Actions
     addPraiseRecord: (record: PraiseRecord) => void;
+    setPraiseRecord: (record: PraiseRecord) => void;
     updateWordCount: (total: number) => void;
+    setWordCount: (total: number, lastPraisedAt: number) => void;
     resetPraiseTracking: () => void;
     markPraiseAsRead: (id: string) => void;
     clearReadPraises: () => void;
 
-    // Selectors/Computed
+    // Selectors
     getWritingStats: () => WritingStats;
 }
 
-export const createPraiseSlice = (set: any, get: any): PraiseSlice => ({
+export const createPraiseSlice = (set: any, get: any, _store: any): PraiseSlice => ({
     praiseHistory: [],
     wordCountState: {
         total: 0,
         lastPraisedAt: 0,
-        threshold: 300,
+        threshold: PRAISE_TRIGGER_THRESHOLD,
     },
     readPraises: new Set(),
 
     addPraiseRecord: (record) =>
-        set((state) => ({
+        set((state: PraiseSlice) => ({
+            praiseHistory: [...state.praiseHistory, record],
+        })),
+
+    setPraiseRecord: (record) =>
+        set((state: PraiseSlice) => ({
             praiseHistory: [...state.praiseHistory, record],
         })),
 
     updateWordCount: (total) =>
-        set((state) => ({
+        set((state: PraiseSlice) => ({
             wordCountState: { ...state.wordCountState, total },
+        })),
+
+    setWordCount: (total, lastPraisedAt) =>
+        set((state: PraiseSlice) => ({
+            wordCountState: { ...state.wordCountState, total, lastPraisedAt },
         })),
 
     resetPraiseTracking: () =>
         set({
             praiseHistory: [],
-            wordCountState: { total: 0, lastPraisedAt: 0, threshold: 300 },
+            wordCountState: { total: 0, lastPraisedAt: 0, threshold: PRAISE_TRIGGER_THRESHOLD },
         }),
 
     markPraiseAsRead: (id) =>
-        set((state) => {
+        set((state: PraiseSlice) => {
             const newSet = new Set(state.readPraises);
             newSet.add(id);
             return { readPraises: newSet };
@@ -58,7 +72,7 @@ export const createPraiseSlice = (set: any, get: any): PraiseSlice => ({
     getWritingStats: () => {
         const state = get();
         const breakdown = state.praiseHistory.reduce(
-            (acc, record) => {
+            (acc: any, record: PraiseRecord) => {
                 if (record.type === 'golden_sentence') acc.golden++;
                 else if (record.type === 'fluency') acc.fluency++;
                 else if (record.type === 'logic') acc.logic++;

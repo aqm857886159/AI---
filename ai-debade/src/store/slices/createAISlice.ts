@@ -1,5 +1,11 @@
-import type { AICharacter, Comment, AISuggestion } from '../../types';
+/**
+ * @module store/slices/createAISlice
+ * @description AI角色和评论状态管理 - 单一职责：管理AI角色和评论列表
+ */
+
 import { DEFAULT_CHARACTERS } from '../../config/characters';
+import { STORAGE_KEYS } from '../../config/constants';
+import type { AICharacter, Comment, AISuggestion } from '../../features/ai-review/types';
 
 export interface AISlice {
     // State
@@ -8,7 +14,7 @@ export interface AISlice {
     isGeneratingComments: boolean;
     aiSuggestions: AISuggestion[];
 
-    // UI State (Related to AI Settings)
+    // UI State
     showSettings: boolean;
     showCharacterManager: boolean;
 
@@ -29,8 +35,7 @@ export interface AISlice {
     setShowCharacterManager: (show: boolean) => void;
 }
 
-export const createAISlice = (set: any, get: any): AISlice => ({
-    // Initialize with DEFAULT_CHARACTERS from config
+export const createAISlice = (set: any, _get: any, _store: any): AISlice => ({
     characters: DEFAULT_CHARACTERS,
     comments: [],
     isGeneratingComments: false,
@@ -39,40 +44,42 @@ export const createAISlice = (set: any, get: any): AISlice => ({
     showCharacterManager: false,
 
     addCharacter: (character) =>
-        set((state) => {
+        set((state: AISlice) => {
             const newCharacters = [...state.characters, character];
-            localStorage.setItem('ai_characters', JSON.stringify(newCharacters));
+            localStorage.setItem(STORAGE_KEYS.AI_CHARACTERS, JSON.stringify(newCharacters));
             return { characters: newCharacters };
         }),
 
     removeCharacter: (id) =>
-        set((state) => {
-            const newCharacters = state.characters.filter((c) => c.id !== id);
-            localStorage.setItem('ai_characters', JSON.stringify(newCharacters));
+        set((state: AISlice) => {
+            const newCharacters = state.characters.filter((c: AICharacter) => c.id !== id);
+            localStorage.setItem(STORAGE_KEYS.AI_CHARACTERS, JSON.stringify(newCharacters));
             return { characters: newCharacters };
         }),
 
     updateCharacter: (id, updates) =>
-        set((state) => {
-            const newCharacters = state.characters.map((c) =>
+        set((state: AISlice) => {
+            const newCharacters = state.characters.map((c: AICharacter) =>
                 c.id === id ? { ...c, ...updates } : c
             );
-            localStorage.setItem('ai_characters', JSON.stringify(newCharacters));
+            localStorage.setItem(STORAGE_KEYS.AI_CHARACTERS, JSON.stringify(newCharacters));
             return { characters: newCharacters };
         }),
 
     addComment: (comment) =>
-        set((state) => ({ comments: [...state.comments, comment] })),
+        set((state: AISlice) => ({ comments: [...state.comments, comment] })),
 
     clearComments: () => set({ comments: [] }),
 
     setGeneratingComments: (isGeneratingComments) => set({ isGeneratingComments }),
 
     addAISuggestion: (suggestion) =>
-        set((state) => ({ aiSuggestions: [...state.aiSuggestions, suggestion] })),
+        set((state: AISlice) => ({ aiSuggestions: [...state.aiSuggestions, suggestion] })),
 
     removeAISuggestion: (id) =>
-        set((state) => ({ aiSuggestions: state.aiSuggestions.filter((s) => s.id !== id) })),
+        set((state: AISlice) => ({
+            aiSuggestions: state.aiSuggestions.filter((s: AISuggestion) => s.id !== id),
+        })),
 
     clearAISuggestions: () => set({ aiSuggestions: [] }),
 

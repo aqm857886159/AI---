@@ -1,4 +1,9 @@
-import type { TitleSuggestion } from '../../types';
+/**
+ * @module store/slices/createContentSlice
+ * @description 内容状态管理 - 单一职责：管理编辑器内容和标题
+ */
+
+import type { TitleSuggestion } from '../../features/ai-review/types';
 
 export interface ContentSlice {
     // State
@@ -16,7 +21,7 @@ export interface ContentSlice {
     setSelectedTextRange: (range: { from: number; to: number } | null) => void;
 }
 
-export const createContentSlice = (set: any): ContentSlice => ({
+export const createContentSlice = (set: any, _get: any, _store: any): ContentSlice => ({
     content: '',
     title: '',
     titleSuggestion: null,

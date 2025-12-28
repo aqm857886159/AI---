@@ -1,5 +1,19 @@
-import { openRouterService } from './openrouter';
-import type { PraiseResponse } from '../types';
+/**
+ * @module features/praise/praiseService
+ * @description 夸夸服务 - 单一职责：与AI交互生成夸夸内容
+ */
+
+import { openRouterService } from '../../services/openrouter';
+import {
+    PRAISE_TRIGGER_THRESHOLD,
+    BULK_PRAISE_MAX_CHARS,
+    INCREMENTAL_PRAISE_WINDOW,
+    HIGH_CREATIVITY_TEMPERATURE,
+    DEFAULT_TEMPERATURE,
+} from '../../config/constants';
+import type { PraiseResponse, IncrementalPraiseResponse, PraiseHighlight } from './types';
+
+// ======== Prompt模板 ========
 
 const PRAISE_SYSTEM_PROMPT = `
 你是一位精通网络流行语且文学造诣极高的"互联网嘴替"兼"文学评论家"。
@@ -31,12 +45,11 @@ const PRAISE_SYSTEM_PROMPT = `
    - insight: 洞察、深度、哲理
 `;
 
-// V17: Incremental Praise System Prompt
 const INCREMENTAL_PRAISE_PROMPT = `
 你是用户的写作教练，持续给予鼓励反馈。
 
 ## 任务
-分析用户最近写的文字（约300字），给予1-2个鼓励性夸奖。
+分析用户最近写的文字（约${PRAISE_TRIGGER_THRESHOLD}字），给予1-2个鼓励性夸奖。
 
 ## 夸奖策略（优先级从高到低）
 
@@ -79,79 +92,88 @@ const INCREMENTAL_PRAISE_PROMPT = `
 - quote字段仅在golden_sentence时才需要
 `;
 
+/**
+ * 夸夸服务
+ */
 export const praiseService = {
+    /**
+     * 生成全文夸夸
+     * @param content 全文内容
+     * @returns 夸夸响应
+     */
     async generatePraise(content: string): Promise<PraiseResponse | null> {
         const userPrompt = `Analysis Target:\n${content}\n\nPlease output valid JSON only.`;
 
         try {
-            const response = await openRouterService.chat([
-                { role: 'system', content: PRAISE_SYSTEM_PROMPT },
-                { role: 'user', content: userPrompt }
-            ], 0.8); // High temp for creative hooks
+            const response = await openRouterService.chat(
+                [
+                    { role: 'system', content: PRAISE_SYSTEM_PROMPT },
+                    { role: 'user', content: userPrompt },
+                ],
+                HIGH_CREATIVITY_TEMPERATURE
+            );
 
-            let cleaned = response.trim();
-            if (cleaned.startsWith('```')) {
-                cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
-            }
+            const data = parseJsonResponse(response);
 
-            const data = JSON.parse(cleaned);
-
-            // Generate IDs if missing (fallback)
+            // 补充缺失的ID
             if (data.highlights && Array.isArray(data.highlights)) {
-                data.highlights.forEach((h: any, index: number) => {
+                data.highlights.forEach((h: PraiseHighlight, index: number) => {
                     if (!h.id) h.id = `praise-${Date.now()}-${index}`;
-                    if (!h.wow) h.wow = "✨ 眼前一亮！"; // Fallback wow
+                    if (!h.wow) h.wow = '✨ 眼前一亮！';
                 });
             }
 
             return data as PraiseResponse;
-
         } catch (e) {
-            console.error('Praise Generation Failed:', e);
+            console.error('[praiseService] generatePraise failed:', e);
             return null;
         }
     },
 
-    // V17: Incremental Praise Generation
+    /**
+     * 生成增量夸夸
+     * @param fullContent 全文内容
+     * @param _lastPosition 上次位置（保留参数）
+     * @returns 增量夸夸响应
+     */
     async generateIncrementalPraise(
         fullContent: string,
-        lastPosition: number
-    ): Promise<import('../types').IncrementalPraiseResponse | null> {
-        // Extract recent content (sliding window: last 500 chars)
+        _lastPosition: number
+    ): Promise<IncrementalPraiseResponse | null> {
+        // 滑动窗口：取最后N个字符
         const recentContent = fullContent.slice(
-            Math.max(0, fullContent.length - 500)
+            Math.max(0, fullContent.length - INCREMENTAL_PRAISE_WINDOW)
         );
 
         const userPrompt = `分析内容:\n${recentContent}\n\nPlease output valid JSON only.`;
 
         try {
-            const response = await openRouterService.chat([
-                { role: 'system', content: INCREMENTAL_PRAISE_PROMPT },
-                { role: 'user', content: userPrompt }
-            ], 0.7); // Slightly lower temp for consistency
+            const response = await openRouterService.chat(
+                [
+                    { role: 'system', content: INCREMENTAL_PRAISE_PROMPT },
+                    { role: 'user', content: userPrompt },
+                ],
+                DEFAULT_TEMPERATURE
+            );
 
-            let cleaned = response.trim();
-            if (cleaned.startsWith('```')) {
-                cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
-            }
-
-            const data = JSON.parse(cleaned);
-            return data as import('../types').IncrementalPraiseResponse;
-
+            return parseJsonResponse(response) as IncrementalPraiseResponse;
         } catch (e) {
-            console.error('Incremental Praise Generation Failed:', e);
+            console.error('[praiseService] generateIncrementalPraise failed:', e);
             return null;
         }
     },
 
-    // V17: Bulk Praise Generation (For Paste/Import)
+    /**
+     * 批量生成夸夸（用于粘贴/导入长文）
+     * @param fullContent 全文内容
+     * @param targetCount 目标夸夸数量
+     * @returns 批量夸夸响应
+     */
     async generateBulkPraise(
         fullContent: string,
         targetCount: number
-    ): Promise<import('../types').IncrementalPraiseResponse | null> {
-        // Use full content for bulk analysis, but capped to save tokens if extremely long
-        // Analyzing up to 5000 chars is usually enough for a 2000 word essay
-        const analyzedContent = fullContent.slice(0, 5000);
+    ): Promise<IncrementalPraiseResponse | null> {
+        const analyzedContent = fullContent.slice(0, BULK_PRAISE_MAX_CHARS);
 
         const BULK_PROMPT = `
 你是用户的写作教练。用户刚刚导入了一篇长文，你需要进行整体分析并给予鼓励。
@@ -182,31 +204,38 @@ export const praiseService = {
 
 ## 语气要求
 - 像一个热情的朋友，不要像机器人。
-- **Clara (Praise AI)** 特别喜欢用 emoji。
 - **严禁废话**，直接说重点。
 - **理由字数严格控制在50字以内，超出将被截断！**
-}
 `;
 
-        const userPrompt = `全文内容(前5000字):\n${analyzedContent}\n\n请输出 ${targetCount} 条分布均匀的夸奖。Please output valid JSON only.`;
+        const userPrompt = `全文内容(前${BULK_PRAISE_MAX_CHARS}字):\n${analyzedContent}\n\n请输出 ${targetCount} 条分布均匀的夸奖。Please output valid JSON only.`;
 
         try {
-            const response = await openRouterService.chat([
-                { role: 'system', content: BULK_PROMPT },
-                { role: 'user', content: userPrompt }
-            ], 0.7);
+            const response = await openRouterService.chat(
+                [
+                    { role: 'system', content: BULK_PROMPT },
+                    { role: 'user', content: userPrompt },
+                ],
+                DEFAULT_TEMPERATURE
+            );
 
-            let cleaned = response.trim();
-            if (cleaned.startsWith('```')) {
-                cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
-            }
-
-            const data = JSON.parse(cleaned);
-            return data as import('../types').IncrementalPraiseResponse;
-
+            return parseJsonResponse(response) as IncrementalPraiseResponse;
         } catch (e) {
-            console.error('Bulk Praise Generation Failed:', e);
+            console.error('[praiseService] generateBulkPraise failed:', e);
             return null;
         }
-    }
+    },
 };
+
+// ======== 辅助函数 ========
+
+/**
+ * 解析JSON响应（处理markdown代码块）
+ */
+function parseJsonResponse(response: string): any {
+    let cleaned = response.trim();
+    if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+    }
+    return JSON.parse(cleaned);
+}

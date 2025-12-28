@@ -1,142 +1,63 @@
-// AI角色类型定义
-export type AICharacter = {
-  id: string;
-  name: string;
-  avatar: string | React.ElementType;
-  avatarUrl?: string;
-  personality: string;
-  style: string[];
-  systemPrompt: string;
-  isCustom: boolean;
-  hiddenFromPanel?: boolean; // New: Hide from CommentPanel list
-};
+/**
+ * @module types
+ * @description 类型定义汇总导出 - 保持向后兼容
+ * 
+ * 注意：此文件为了向后兼容保留，新代码应从各自的features模块导入类型
+ */
 
-// Diff部分
-export type DiffPart = {
+// Re-export from features/revision
+export type {
+  ParagraphChange,
+  ParagraphChangeType,
+  RevisionItem,
+  FullTextRewrite,
+  RevisionPreview,
+  TrackChangesState,
+  TrackChangesAction,
+} from '../features/revision/types';
+
+export type { InlineDiffPart } from '../services/utils/diffUtils';
+
+// Re-export from features/praise
+export type {
+  PraiseType,
+  PraiseHighlight,
+  PraiseRecord,
+  WritingStats,
+  IncrementalPraiseResponse,
+  PraiseResponse,
+  WordCountState,
+  PraisePluginState,
+  PraiseAction,
+} from '../features/praise/types';
+
+// Re-export from features/ai-review
+export type {
+  AICharacter,
+  Comment,
+  CommentType,
+  CharacterRevisionOutput,
+  AISuggestion,
+  WorkflowStage,
+  TitleSuggestion,
+  OpenRouterConfig,
+} from '../features/ai-review/types';
+
+// Legacy exports that may still be needed
+export interface DiffPart {
   type: 'equal' | 'delete' | 'insert';
   text: string;
-};
+}
 
-// 单个修改点（用于交互式修订）
-export type DiffMark = {
-  id: string;
-  type: 'delete' | 'insert' | 'replace'; // replace = delete + insert
-  originalText?: string; // delete或replace时的原文
-  newText?: string; // insert或replace时的新文本
-  position: { from: number; to: number }; // 在原文档中的位置
-};
-
-// 内联Diff片段
-export type InlineDiffPart = {
-  type: 'equal' | 'delete' | 'insert';
-  text: string;
-};
-
-// 段落级修改（带内联diff）
-export type ParagraphChange = {
-  id: string;
-  index: number;
-  type: 'modified' | 'added' | 'deleted' | 'praise';
-  originalText: string;
-  improvedText?: string;
-  inlineDiff?: InlineDiffPart[]; // 段落内的字符级diff
-  reason?: string; // 修改理由
-  nodePos: number; // ProseMirror节点位置
-};
-
-// AI全文改写（修订模式 - 段落级）
-export type FullTextRewrite = {
-  id: string;
-  originalText: string;
-  improvedText: string;
-  paragraphChanges: ParagraphChange[]; // 段落级修改
-  diffMarks?: DiffMark[]; // 保留向后兼容
-  timestamp: number;
-};
-
-// AI建议（选中文本级别，保留用于划词功能）
-export type AISuggestion = {
+export interface DiffMark {
   id: string;
   characterId: string;
-  originalText: string;
-  improvedText: string;
+  characterName: string;
+  original: string;
+  improved: string;
+  reason: string;
   diff: DiffPart[];
-  comment: string;
-  position: {
-    from: number;
-    to: number;
-  };
+  from: number;
+  to: number;
   timestamp: number;
-};
-
-// 评论类型
-export type Comment = {
-  id: string;
-  characterId: string;
-  type: 'full' | 'selection';
-  content: string;
-  position?: {
-    from: number;
-    to: number;
-  };
-  suggestion?: string;
-  timestamp: number;
-};
-
-// OpenRouter配置
-export type OpenRouterConfig = {
-  apiKey: string;
-  model: string;
-  baseURL: string;
-};
-
-// 标题生成结果
-export type TitleSuggestion = {
-  title: string;
-  reason: string;
-};
-
-// 夸夸高亮
-export type PraiseHighlight = {
-  id: string; // New: Unique ID for read-status
-  type: 'rhetoric' | 'insight' | 'emotion' | 'logic';
-  quote: string;
-  reason: string;
-  wow?: string; // New: Playful hook (AI generated)
-};
-
-export type PraiseResponse = {
-  highlights: PraiseHighlight[];
-};
-
-// V17: Incremental Praise Types
-export interface PraiseRecord {
-  id: string;
-  timestamp: number;
-  type: 'golden_sentence' | 'fluency' | 'logic' | 'emotion' | 'progress';
-  quote?: string;  // Only for golden_sentence
-  wow: string;
-  reason: string;
-  wordCountWhen: number;  // Word count when praise was triggered
-}
-
-export interface WritingStats {
-  totalWords: number;
-  praiseCount: number;
-  breakdown: {
-    golden: number;
-    fluency: number;
-    logic: number;
-    emotion: number;
-    progress: number;
-  };
-}
-
-export interface IncrementalPraiseResponse {
-  praises: Array<{
-    type: PraiseRecord['type'];
-    quote?: string;
-    wow: string;
-    reason: string;
-  }>;
 }
